@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthState, User, LoginCredentials, RegisterCredentials } from '../../types';
+import React, { createContext, ReactNode, useContext, useEffect, useReducer } from 'react';
+import AuthService from '../../services/auth/AuthService';
+import { AuthState, LoginCredentials, RegisterCredentials, User } from '../../types';
 
 // Auth Actions
 type AuthAction =
@@ -81,9 +81,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const loadSavedUser = async () => {
     try {
-      const savedUser = await AsyncStorage.getItem('user');
-      if (savedUser) {
-        const user: User = JSON.parse(savedUser);
+      const user = await AuthService.getCurrentUser();
+      if (user) {
         dispatch({ type: 'LOGIN_SUCCESS', payload: user });
       }
     } catch (error) {
@@ -95,27 +94,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock validation
-      if (credentials.email === 'test@example.com' && credentials.password === '123456') {
-        const user: User = {
-          id: '1',
-          email: credentials.email,
-          name: 'Test User',
-          language: 'es',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        await AsyncStorage.setItem('user', JSON.stringify(user));
-        dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-      } else {
-        dispatch({ type: 'SET_ERROR', payload: 'Credenciales incorrectas' });
-      }
+      const user = await AuthService.login(credentials);
+      dispatch({ type: 'LOGIN_SUCCESS', payload: user });
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: 'Error de conexión. Inténtalo de nuevo.' });
+      const errorMessage = error instanceof Error ? error.message : 'Error de conexión. Inténtalo de nuevo.';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
     }
   };
 
@@ -123,34 +106,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock validation
-      if (credentials.password !== credentials.confirmPassword) {
+      // Validar que las contraseñas coincidan (si confirmPassword está presente)
+      if (credentials.confirmPassword && credentials.password !== credentials.confirmPassword) {
         dispatch({ type: 'SET_ERROR', payload: 'Las contraseñas no coinciden' });
         return;
       }
 
-      const user: User = {
-        id: Date.now().toString(),
-        email: credentials.email,
-        name: credentials.name,
-        language: 'es',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      await AsyncStorage.setItem('user', JSON.stringify(user));
+      const user = await AuthService.register(credentials);
       dispatch({ type: 'REGISTER_SUCCESS', payload: user });
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: 'Error al crear la cuenta. Inténtalo de nuevo.' });
+      const errorMessage = error instanceof Error ? error.message : 'Error al crear la cuenta. Inténtalo de nuevo.';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
     }
   };
 
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem('user');
+      await AuthService.logout();
       dispatch({ type: 'LOGOUT' });
     } catch (error) {
       console.error('Error during logout:', error);

@@ -19,6 +19,8 @@ export default function RegisterScreen() {
   
   const [credentials, setCredentials] = useState({
     name: '',
+    surname: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -31,6 +33,16 @@ export default function RegisterScreen() {
     
     if (!credentials.name.trim()) {
       errors.name = 'Name is required';
+    }
+    
+    if (!credentials.surname.trim()) {
+      errors.surname = 'Surname is required';
+    }
+    
+    if (!credentials.username.trim()) {
+      errors.username = 'Username is required';
+    } else if (credentials.username.length < 3) {
+      errors.username = 'Username must be at least 3 characters';
     }
     
     if (!credentials.email) {
@@ -111,10 +123,34 @@ export default function RegisterScreen() {
                 onChangeText={(text) => 
                   setCredentials(prev => ({ ...prev, name: text }))
                 }
-                placeholder="Enter your name"
+                placeholder="Enter your first name"
                 keyboardType="default"
                 leftIcon="👤"
                 error={fieldErrors.name}
+              />
+
+              <Input
+                label="Surname"
+                value={credentials.surname}
+                onChangeText={(text) => 
+                  setCredentials(prev => ({ ...prev, surname: text }))
+                }
+                placeholder="Enter your last name"
+                keyboardType="default"
+                leftIcon="👤"
+                error={fieldErrors.surname}
+              />
+
+              <Input
+                label="Username"
+                value={credentials.username}
+                onChangeText={(text) => 
+                  setCredentials(prev => ({ ...prev, username: text }))
+                }
+                placeholder="Choose a username"
+                keyboardType="default"
+                leftIcon="@"
+                error={fieldErrors.username}
               />
 
               <Input

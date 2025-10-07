@@ -15,16 +15,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../src/contexts/auth/AuthContext';
 
 export default function LoginScreen() {
-  const { login, isLoading, clearError } = useAuth();
+  const { login, isLoading, error, clearError } = useAuth();
   
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<any>({});
 
   const handleLogin = async () => {
     // Simple validation
-    const newErrors = {};
-    if (!email) newErrors.email = 'Email is required';
+    const newErrors: any = {};
+    if (!username) newErrors.username = 'Username is required';
     if (!password) newErrors.password = 'Password is required';
     
     if (Object.keys(newErrors).length > 0) {
@@ -33,9 +33,10 @@ export default function LoginScreen() {
     }
     
     setErrors({});
+    clearError();
     
     try {
-      await login({ email, password });
+      await login({ username, password });
       router.replace('/(tabs)');
     } catch (error) {
       console.error('Login error:', error);
@@ -54,7 +55,6 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.form}>
-            {/* Header */}
             <View>
               <Text style={styles.title}>
                 Welcome Back
@@ -64,19 +64,26 @@ export default function LoginScreen() {
               </Text>
             </View>
 
-            {/* Form */}
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.globalErrorText}>
+                  {error}
+                </Text>
+              </View>
+            )}
+
             <View>
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Email</Text>
+                <Text style={styles.inputLabel}>Username</Text>
                 <TextInput
-                  style={[styles.input, errors.email && styles.inputError]}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="Enter your email"
+                  style={[styles.input, errors.username && styles.inputError]}
+                  value={username}
+                  onChangeText={setUsername}
+                  placeholder="Enter your username"
                   placeholderTextColor="#9CA3AF"
-                  keyboardType="email-address"
+                  keyboardType="default"
                 />
-                {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
               </View>
 
               <View style={styles.inputContainer}>
@@ -93,7 +100,6 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            {/* Login Button */}
             <View>
               <TouchableOpacity
                 style={[styles.button, isLoading && styles.buttonDisabled]}
@@ -106,7 +112,6 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Register Link */}
             <View>
               <View style={styles.linkContainer}>
                 <Text style={styles.linkText}>
@@ -120,11 +125,10 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            {/* Demo credentials hint */}
             <View style={styles.demoCard}>
               <Text style={styles.demoText}>
                 Demo credentials:{'\n'}
-                Email: test@example.com{'\n'}
+                Username: testuser{'\n'}
                 Password: 123456
               </Text>
             </View>
@@ -157,6 +161,19 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     fontSize: 16,
     marginBottom: 32,
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+  },
+  globalErrorText: {
+    color: '#EF4444',
+    fontSize: 14,
+    textAlign: 'center',
   },
   inputContainer: {
     marginBottom: 16,

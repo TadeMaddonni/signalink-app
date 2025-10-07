@@ -1,12 +1,14 @@
 // User Types
 export interface User {
-  id: string;
-  email: string;
+  id: number;
   name: string;
+  surname?: string;
+  username?: string;
+  email?: string;
   profileImage?: string;
-  language: string;
-  createdAt: Date;
-  updatedAt: Date;
+  language?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 // Authentication Types
@@ -18,16 +20,51 @@ export interface AuthState {
 }
 
 export interface LoginCredentials {
-  email: string;
+  username: string;
   password: string;
 }
 
 export interface RegisterCredentials {
   name: string;
+  surname: string;
+  username: string;
   email: string;
   password: string;
-  confirmPassword: string;
+  confirmPassword?: string;
 }
+
+// API Response Types
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+}
+
+// Login success response
+export interface LoginSuccessResponse {
+  success: true;
+  message: string;
+  user: {
+    id: number;
+    name: string;
+  };
+}
+
+// Register success response  
+export interface RegisterSuccessResponse {
+  success: true;
+  message: string;
+  user_id: number;
+}
+
+// Error response
+export interface ApiErrorResponse {
+  error: string;
+}
+
+// Union types for API responses
+export type LoginResponse = LoginSuccessResponse | ApiErrorResponse;
+export type RegisterResponse = RegisterSuccessResponse | ApiErrorResponse;
 
 // Sign Language Translation Types
 export interface SignData {
