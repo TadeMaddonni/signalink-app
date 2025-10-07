@@ -1,0 +1,158 @@
+// User Types
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  profileImage?: string;
+  language: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Authentication Types
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterCredentials {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+// Sign Language Translation Types
+export interface SignData {
+  id: string;
+  gesture: string;
+  translation: string;
+  confidence: number;
+  timestamp: Date;
+}
+
+export interface TranslationResult {
+  text: string;
+  language: string;
+  confidence: number;
+}
+
+// Bluetooth Device Types
+export interface BluetoothDevice {
+  id: string;
+  name: string;
+  isConnected: boolean;
+  signalStrength: number;
+  lastConnected?: Date;
+}
+
+// Chat Types
+export interface ChatMessage {
+  id: string;
+  userId: string;
+  userName: string;
+  content: string;
+  signData?: SignData;
+  translation?: TranslationResult;
+  timestamp: Date;
+  isFromCurrentUser: boolean;
+}
+
+export interface ChatRoom {
+  id: string;
+  name: string;
+  participants: User[];
+  lastMessage?: ChatMessage;
+  createdAt: Date;
+}
+
+// Navigation Types
+export type RootStackParamList = {
+  Auth: undefined;
+  Onboarding: undefined;
+  MainTabs: undefined;
+};
+
+export type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+  ProfileSetup: undefined;
+};
+
+export type TabParamList = {
+  Home: undefined;
+  Chat: undefined;
+  Explore: undefined;
+  Profile: undefined;
+};
+
+// UI Component Props
+export interface ButtonProps {
+  title: string;
+  onPress: () => void;
+  variant?: 'primary' | 'secondary' | 'outline';
+  size?: 'sm' | 'md' | 'lg';
+  loading?: boolean;
+  disabled?: boolean;
+  icon?: string;
+}
+
+export interface InputProps {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder?: string;
+  secureTextEntry?: boolean;
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
+  error?: string;
+  leftIcon?: string;
+  rightIcon?: string;
+}
+
+// Theme Types
+export interface Theme {
+  colors: {
+    primary: string;
+    secondary: string;
+    background: string;
+    surface: string;
+    text: string;
+    border: string;
+    error: string;
+    success: string;
+  };
+  typography: {
+    h1: object;
+    h2: object;
+    h3: object;
+    body: object;
+    caption: object;
+  };
+  spacing: {
+    xs: number;
+    sm: number;
+    md: number;
+    lg: number;
+    xl: number;
+  };
+}
+
+// Language Types
+export interface Language {
+  code: string;
+  name: string;
+  nativeName: string;
+  flag: string;
+}
+
+export interface TranslationService {
+  translate: (text: string, targetLanguage: string) => Promise<TranslationResult>;
+  detectLanguage: (text: string) => Promise<string>;
+}
