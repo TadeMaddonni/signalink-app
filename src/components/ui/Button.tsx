@@ -1,97 +1,78 @@
-import React from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { ButtonProps } from '../../types';
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
+
+interface ButtonProps {
+  text: string;
+  onPress: () => void;
+  variant?: "primary" | "secondary";
+  disabled?: boolean;
+}
 
 export const Button: React.FC<ButtonProps> = ({
-  title,
+  text,
   onPress,
-  variant = 'primary',
-  size = 'md',
-  loading = false,
+  variant = "primary",
   disabled = false,
-  icon,
 }) => {
-
-  const getVariantStyles = () => {
-    switch (variant) {
-      case 'primary':
-        return {
-          container: 'bg-white rounded-3xl shadow-lg',
-          text: 'text-black',
-          shadow: 'shadow-[0px_0.3px_24px_rgba(222,120,28,0.15)]',
-        };
-      case 'secondary':
-        return {
-          container: 'bg-primary-500 rounded-3xl',
-          text: 'text-white',
-          shadow: 'shadow-lg',
-        };
-      case 'outline':
-        return {
-          container: 'border border-primary-500 rounded-3xl bg-transparent',
-          text: 'text-primary-500',
-          shadow: '',
-        };
-      default:
-        return {
-          container: 'bg-white rounded-3xl shadow-lg',
-          text: 'text-black',
-          shadow: 'shadow-[0px_0.3px_24px_rgba(222,120,28,0.15)]',
-        };
-    }
-  };
-
-  const getSizeStyles = () => {
-    switch (size) {
-      case 'sm':
-        return {
-          container: 'h-10 px-4',
-          text: 'text-sm',
-        };
-      case 'md':
-        return {
-          container: 'h-12 px-6',
-          text: 'text-base',
-        };
-      case 'lg':
-        return {
-          container: 'h-14 px-8',
-          text: 'text-lg',
-        };
-      default:
-        return {
-          container: 'h-12 px-6',
-          text: 'text-base',
-        };
-    }
-  };
-
-  const styles = getVariantStyles();
-  const sizeStyles = getSizeStyles();
-
   return (
-    <Pressable
-      className={`${styles.container} ${styles.shadow} ${sizeStyles.container} ${
-        disabled ? 'opacity-50' : ''
-      } justify-center items-center`}
-      onPress={disabled || loading ? undefined : onPress}
-      disabled={disabled || loading}
+    <TouchableOpacity
+      style={[
+        styles.button,
+        variant === "primary" ? styles.primaryButton : styles.secondaryButton,
+        disabled && styles.disabledButton,
+      ]}
+      onPress={onPress}
+      disabled={disabled}
     >
-      <View className="flex-row items-center justify-center space-x-2">
-        {loading ? (
-          <ActivityIndicator 
-            size="small" 
-            color={variant === 'primary' ? '#000000' : '#ffffff'} 
-          />
-        ) : (
-          <>
-            <Text className={`${styles.text} ${sizeStyles.text} font-inter-medium`}>
-              {title}
-            </Text>
-            {icon && <Text className="text-lg">{icon}</Text>}
-          </>
-        )}
-      </View>
-    </Pressable>
+      <Text
+        style={[
+          styles.buttonText,
+          variant === "primary" ? styles.primaryText : styles.secondaryText,
+          disabled && styles.disabledText,
+        ]}
+      >
+        {text}
+      </Text>
+    </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+    alignItems: "center",
+    shadowColor: "#f99f12",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  primaryButton: {
+    backgroundColor: "#ffffff",
+  },
+  secondaryButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#ffffff",
+  },
+  disabledButton: {
+    backgroundColor: "#666666",
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  primaryText: {
+    color: "#000000",
+  },
+  secondaryText: {
+    color: "#ffffff",
+  },
+  disabledText: {
+    color: "#999999",
+  },
+});

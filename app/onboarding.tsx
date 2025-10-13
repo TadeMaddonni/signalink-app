@@ -1,33 +1,19 @@
-import React, { useState } from "react";
+import { router } from "expo-router";
+import React from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { router } from "expo-router";
-import { Button } from "../../src/components/ui/Button";
-import { BluetoothService } from "../../src/services/bluetooth/BluetoothService";
-import "../../src/utils/i18n"; // Initialize i18n
+import { Button } from "../src/components/ui/Button";
+import "../src/utils/i18n"; // Initialize i18n
 
-export default function TabTwoScreen() {
-  const [isConnected, setIsConnected] = useState(false);
-  const [batteryLevel] = useState(85);
-
-  const bluetoothService = BluetoothService.getInstance();
-  React.useEffect(() => {
-    setIsConnected(bluetoothService.isConnected());
-
-    if (bluetoothService.isConnected()) {
-      bluetoothService.startDataStream();
-    }
-  }, []);
-
-  const handleWithGlove = async () => {
-    await bluetoothService.connectToDevice("signalink-001");
-    setIsConnected(bluetoothService.isConnected());
+export default function OnboardingScreen() {
+  const handleLogin = () => {
+    router.push("/auth/login");
   };
 
-  const handleWithoutGlove = async () => {
-    router.push("/(tabs)/explore");
+  const handleRegister = () => {
+    router.push("/auth/register");
   };
 
   return (
@@ -37,28 +23,28 @@ export default function TabTwoScreen() {
         <Animated.View entering={FadeInDown.delay(100)}>
           <Text style={styles.title}>Bienvenido a Signalink!</Text>
           <Text style={styles.subtitle}>
-            Bienvenido a la app de Signalink, te esperamos para que puedas comunicarte 
+            Conecta tu guante y comienza a comunicarte de manera única
           </Text>
         </Animated.View>
 
         {/* Glove Image */}
         <Image
-          source={require("../../assets/images/glove.png")}
+          source={require("../assets/images/glove.png")}
           style={styles.gloveImage}
           resizeMode="contain"
         />
 
-        <View style={styles.connectButtonContainer}>
-          {/* has glove */}
+        <View style={styles.buttonContainer}>
+          {/* Login Button */}
           <Button
-            text="Tengo guante Signalink"
-            onPress={handleWithGlove}
+            text="Iniciar sesión"
+            onPress={handleLogin}
             variant="primary"
           />
-          {/* Don't has glove */}
+          {/* Register Button */}
           <Button
-            text="No tengo guante Signalink"
-            onPress={handleWithoutGlove}
+            text="Registrarse"
+            onPress={handleRegister}
             variant="secondary"
           />
         </View>
@@ -104,7 +90,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
     top: "20%",
   },
-  connectButtonContainer: {
+  buttonContainer: {
     display: "flex",
     flexDirection: "column",
     gap: 16,
