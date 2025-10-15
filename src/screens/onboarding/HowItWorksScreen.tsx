@@ -1,10 +1,11 @@
+import { Hand, Mic, Smartphone } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,17 +16,17 @@ export default function HowItWorksScreen({ navigation }: any) {
 
   const steps = [
     {
-      icon: '🖐️',
+      icon: Hand,
       title: 'Wear the Glove',
       description: 'Put on the Signalink glove and ensure it\'s powered on',
     },
     {
-      icon: '📱',
+      icon: Smartphone,
       title: 'Connect via Bluetooth',
       description: 'Connect the glove to your phone via Bluetooth',
     },
     {
-      icon: '🗣️',
+      icon: Mic,
       title: 'Start Signing',
       description: 'Start signing and watch your gestures turn into speech',
     },
@@ -69,9 +70,12 @@ export default function HowItWorksScreen({ navigation }: any) {
           {/* Current Step Highlight */}
           <View style={styles.stepCard}>
             <View style={styles.stepContent}>
-              <Text style={styles.stepIcon}>
-                {steps[currentStep].icon}
-              </Text>
+              <View style={styles.stepIconContainer}>
+                {React.createElement(steps[currentStep].icon, { 
+                  size: 48, 
+                  color: '#f99f12' 
+                })}
+              </View>
               
               <Text style={styles.stepTitle}>
                 {steps[currentStep].title}
@@ -187,9 +191,10 @@ const styles = StyleSheet.create({
   stepContent: {
     alignItems: 'center',
   },
-  stepIcon: {
-    fontSize: 64,
+  stepIconContainer: {
     marginBottom: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   stepTitle: {
     color: '#ffffff',

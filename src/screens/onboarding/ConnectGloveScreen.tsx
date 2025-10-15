@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  View,
-  Text,
+  Image,
   ScrollView,
-  TouchableOpacity,
   StyleSheet,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { BluetoothService } from '../../services/bluetooth/BluetoothService';
-import '../../utils/i18n';
+import { CheckCircle } from "lucide-react-native";
+import { BluetoothService } from "../../services/bluetooth/BluetoothService";
+import "../../utils/i18n";
 
 export default function ConnectGloveScreen({ navigation }: any) {
   const [isConnecting, setIsConnecting] = useState(false);
@@ -17,70 +19,72 @@ export default function ConnectGloveScreen({ navigation }: any) {
 
   const handleConnectGlove = async () => {
     setIsConnecting(true);
-    
+
     try {
       const bluetoothService = BluetoothService.getInstance();
       await bluetoothService.initialize();
-      
-      const success = await bluetoothService.connectToDevice('signalink-001');
-      
+
+      const success = await bluetoothService.connectToDevice("signalink-001");
+
       if (success) {
         setIsConnected(true);
         // Navigate to next screen after a delay
         setTimeout(() => {
-          navigation.navigate('HowItWorks');
+          navigation.navigate("HowItWorks");
         }, 1500);
       } else {
         // Show error or retry
         setIsConnecting(false);
       }
     } catch (error) {
-      console.error('Connection error:', error);
+      console.error("Connection error:", error);
       setIsConnecting(false);
     }
   };
 
   const handleSkipConnection = () => {
-    navigation.navigate('HowItWorks');
+    navigation.navigate("HowItWorks");
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.content}>
-          {/* Glove Placeholder */}
-          <View style={styles.gloveContainer}>
-            <View style={styles.glovePlaceholder}>
-              <Text style={styles.gloveText}>
-                🖐️
-              </Text>
-              <Text style={styles.gloveLabel}>
-                Signalink Glove
-              </Text>
+        <View style={styles.textContent}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Connect Your Glove</Text>
+            <Text style={styles.subtitle}>
+              Turn on your Signalink glove and tap the button below to connect
+              via Bluetooth
+            </Text>
+          </View>
+        </View>
+        <View style={styles.container}>
+          <View style={styles.content}>
+            {/* Glove Image */}
+            <View style={styles.gloveContainer}>
+              <Image
+                source={require("../../../assets/images/glove.png")}
+                style={styles.gloveImage}
+                resizeMode="contain"
+              />
             </View>
           </View>
 
           {/* Content */}
           <View style={styles.textContent}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Text style={styles.title}>
-                Connect Your Glove
-              </Text>
-              <Text style={styles.subtitle}>
-                Turn on your Signalink glove and tap the button below to connect via Bluetooth
-              </Text>
-            </View>
-
             {/* Connection Status */}
             {isConnected && (
               <View style={styles.successCard}>
-                <Text style={styles.successText}>
-                  ✅ Glove Connected Successfully!
-                </Text>
+                <View style={styles.successContent}>
+                  <CheckCircle size={20} color="#86EFAC" />
+                  <Text style={styles.successText}>
+                    Glove Connected Successfully!
+                  </Text>
+                </View>
               </View>
             )}
 
@@ -89,24 +93,26 @@ export default function ConnectGloveScreen({ navigation }: any) {
               <TouchableOpacity
                 style={[
                   styles.primaryButton,
-                  (isConnecting || isConnected) && styles.buttonDisabled
+                  (isConnecting || isConnected) && styles.buttonDisabled,
                 ]}
                 onPress={handleConnectGlove}
                 disabled={isConnecting || isConnected}
               >
                 <Text style={styles.primaryButtonText}>
-                  {isConnecting ? 'Connecting...' : isConnected ? 'Connected' : 'Connect Glove'}
+                  {isConnecting
+                    ? "Connecting..."
+                    : isConnected
+                    ? "Connected"
+                    : "Connect Glove"}
                 </Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 onPress={handleSkipConnection}
                 style={styles.skipButton}
                 disabled={isConnecting}
               >
-                <Text style={styles.skipButtonText}>
-                  Skip for now
-                </Text>
+                <Text style={styles.skipButtonText}>Skip for now</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -119,7 +125,7 @@ export default function ConnectGloveScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
   },
   scrollView: {
     flexGrow: 1,
@@ -128,30 +134,36 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gloveContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingTop: 60,
     paddingBottom: 40,
+    minHeight: 400,
+    position: "relative",
   },
   glovePlaceholder: {
     width: 200,
     height: 200,
-    backgroundColor: 'rgba(249, 159, 18, 0.1)',
+    backgroundColor: "rgba(249, 159, 18, 0.1)",
     borderWidth: 2,
-    borderColor: 'rgba(249, 159, 18, 0.3)',
+    borderColor: "rgba(249, 159, 18, 0.3)",
     borderRadius: 100,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  gloveText: {
-    fontSize: 80,
+  gloveImage: {
+    width: "100%",
+    height: 600,
+    objectFit: "cover",
     marginBottom: 8,
+    position: "absolute",
+    top: "-30%",
+    left: "-10%",
   },
   gloveLabel: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 16,
   },
   textContent: {
-    flex: 1,
     paddingHorizontal: 24,
     paddingTop: 20,
     paddingBottom: 16,
@@ -160,46 +172,52 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 16,
-    textShadowColor: '#d2981d',
+    textShadowColor: "#d2981d",
     textShadowOffset: { width: 0, height: 0.4 },
     textShadowRadius: 10,
   },
   subtitle: {
-    color: '#D1D5DB',
+    color: "#D1D5DB",
     fontSize: 16,
     lineHeight: 24,
   },
   successCard: {
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    backgroundColor: "rgba(34, 197, 94, 0.1)",
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.3)',
+    borderColor: "rgba(34, 197, 94, 0.3)",
     borderRadius: 12,
     padding: 16,
     marginTop: 24,
   },
+  successContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   successText: {
-    color: '#86EFAC',
+    color: "#86EFAC",
     fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
   buttonsContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
     paddingBottom: 32,
     gap: 16,
   },
   primaryButton: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     borderRadius: 24,
     paddingVertical: 16,
     paddingHorizontal: 24,
-    alignItems: 'center',
-    shadowColor: '#f99f12',
+    alignItems: "center",
+    shadowColor: "#f99f12",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.55,
     shadowRadius: 12,
@@ -209,19 +227,19 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   primaryButtonText: {
-    color: '#000000',
+    color: "#000000",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   skipButton: {
     paddingVertical: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   skipButtonText: {
-    color: '#9CA3AF',
+    color: "#9CA3AF",
     fontSize: 16,
-    textAlign: 'center',
-    textShadowColor: '#d2981d',
+    textAlign: "center",
+    textShadowColor: "#d2981d",
     textShadowOffset: { width: 0, height: 0.4 },
     textShadowRadius: 10,
   },

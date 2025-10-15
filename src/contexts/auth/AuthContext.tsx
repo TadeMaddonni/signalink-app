@@ -9,7 +9,8 @@ type AuthAction =
   | { type: 'LOGIN_SUCCESS'; payload: User }
   | { type: 'LOGOUT' }
   | { type: 'REGISTER_SUCCESS'; payload: User }
-  | { type: 'COMPLETE_ONBOARDING' };
+  | { type: 'COMPLETE_ONBOARDING' }
+  | { type: 'GUEST_LOGIN' };
 
 // Initial State
 const initialState: AuthState = {
@@ -57,6 +58,15 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         ...state,
         hasCompletedOnboarding: true,
       };
+    case 'GUEST_LOGIN':
+      return {
+        ...state,
+        user: { id: 0, name: 'Guest User', username: 'Guest User', email: 'guest@signalink.com' },
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+        hasCompletedOnboarding: false, // Guest needs to go through onboarding
+      };
     default:
       return state;
   }
@@ -69,6 +79,7 @@ interface AuthContextType extends AuthState {
   logout: () => Promise<void>;
   clearError: () => void;
   completeOnboarding: () => void;
+  loginAsGuest: () => void;
 }
 
 // Create Context
@@ -146,6 +157,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'COMPLETE_ONBOARDING' });
   };
 
+  const loginAsGuest = () => {
+    dispatch({ type: 'GUEST_LOGIN' });
+  };
+
   const value: AuthContextType = {
     ...state,
     login,
@@ -153,6 +168,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     clearError,
     completeOnboarding,
+    loginAsGuest,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

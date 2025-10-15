@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BookOpen, Circle, Settings, Volume2 } from 'lucide-react-native';
 import { BluetoothService } from '../../services/bluetooth/BluetoothService';
 import '../../utils/i18n';
 
@@ -63,9 +64,11 @@ export default function HomeScreen() {
                 </Text>
               </View>
               <View style={styles.statusRight}>
-                <Text style={styles.statusIcon}>
-                  {isConnected ? '🟢' : '🔴'}
-                </Text>
+                <Circle 
+                  size={16} 
+                  color={isConnected ? '#22C55E' : '#EF4444'} 
+                  fill={isConnected ? '#22C55E' : '#EF4444'}
+                />
                 {isConnected && (
                   <Text style={styles.batteryText}>
                     Battery: {batteryLevel}%
@@ -84,7 +87,7 @@ export default function HomeScreen() {
             <View style={styles.actionsList}>
               <TouchableOpacity style={styles.actionCard}>
                 <View style={styles.actionContent}>
-                  <Text style={styles.actionIcon}>🔊</Text>
+                  <Volume2 size={24} color="#f99f12" />
                   <View style={styles.actionTextContainer}>
                     <Text style={styles.actionTitle}>
                       Voice Translation Mode
@@ -98,7 +101,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity style={styles.actionCard}>
                 <View style={styles.actionContent}>
-                  <Text style={styles.actionIcon}>📚</Text>
+                  <BookOpen size={24} color="#f99f12" />
                   <View style={styles.actionTextContainer}>
                     <Text style={styles.actionTitle}>
                       Learn Signs
@@ -112,7 +115,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity style={styles.actionCard}>
                 <View style={styles.actionContent}>
-                  <Text style={styles.actionIcon}>⚙️</Text>
+                  <Settings size={24} color="#f99f12" />
                   <View style={styles.actionTextContainer}>
                     <Text style={styles.actionTitle}>
                       Settings

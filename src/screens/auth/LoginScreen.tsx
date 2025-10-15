@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
+  Text,
   TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,7 +15,7 @@ import { useAuth } from '../../contexts/auth/AuthContext';
 import '../../utils/i18n';
 
 export default function LoginScreen({ navigation }: any) {
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, loginAsGuest, isLoading, error, clearError } = useAuth();
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -45,6 +45,10 @@ export default function LoginScreen({ navigation }: any) {
 
   const navigateToRegister = () => {
     navigation.navigate('Register');
+  };
+
+  const handleGuestLogin = () => {
+    loginAsGuest();
   };
 
   return (
@@ -124,6 +128,14 @@ export default function LoginScreen({ navigation }: any) {
                 <TouchableOpacity onPress={navigateToRegister}>
                   <Text style={styles.linkHighlight}>
                     Sign up
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.guestContainer}>
+                <TouchableOpacity onPress={handleGuestLogin}>
+                  <Text style={styles.guestText}>
+                    Continuar como invitado
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -239,6 +251,15 @@ const styles = StyleSheet.create({
     color: '#f99f12',
     fontSize: 14,
     fontWeight: '500',
+  },
+  guestContainer: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  guestText: {
+    color: '#9CA3AF',
+    fontSize: 16,
+    textDecorationLine: 'underline',
   },
   demoCard: {
     backgroundColor: 'rgba(249, 159, 18, 0.1)',

@@ -1,10 +1,11 @@
+import { Check, Globe, Sparkles, Target, Zap } from 'lucide-react-native';
 import React from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,17 +17,17 @@ export default function BenefitsScreen({ navigation }: any) {
   
   const features = [
     {
-      icon: '⚡',
+      icon: Zap,
       title: 'Real-Time Translation',
       description: 'Get instant translation of your sign language gestures into spoken text.',
     },
     {
-      icon: '🌍',
+      icon: Globe,
       title: 'Multi-Language Support',
       description: 'Communicate in multiple languages and break language barriers.',
     },
     {
-      icon: '🎯',
+      icon: Target,
       title: 'High Precision',
       description: 'High-precision gesture recognition for accurate communication.',
     },
@@ -64,9 +65,12 @@ export default function BenefitsScreen({ navigation }: any) {
             {features.map((feature, index) => (
               <View key={index} style={styles.featureCard}>
                 <View style={styles.featureContent}>
-                  <Text style={styles.featureIcon}>
-                    {feature.icon}
-                  </Text>
+                  <View style={styles.featureIconContainer}>
+                    {React.createElement(feature.icon, { 
+                      size: 32, 
+                      color: '#f99f12' 
+                    })}
+                  </View>
                   
                   <View style={styles.featureTextContainer}>
                     <Text style={styles.featureTitle}>
@@ -83,30 +87,33 @@ export default function BenefitsScreen({ navigation }: any) {
 
           {/* Additional Benefits */}
           <View style={styles.exclusiveCard}>
-            <Text style={styles.exclusiveTitle}>
-              ✨ Exclusive Features
-            </Text>
+            <View style={styles.exclusiveTitleContainer}>
+              <Sparkles size={20} color="#f99f12" />
+              <Text style={styles.exclusiveTitle}>
+                Exclusive Features
+              </Text>
+            </View>
             <View style={styles.exclusiveList}>
               <View style={styles.exclusiveItem}>
-                <Text style={styles.checkmark}>✓</Text>
+                <Check size={16} color="#22C55E" />
                 <Text style={styles.exclusiveText}>
                   Voice synthesis for audible communication
                 </Text>
               </View>
               <View style={styles.exclusiveItem}>
-                <Text style={styles.checkmark}>✓</Text>
+                <Check size={16} color="#22C55E" />
                 <Text style={styles.exclusiveText}>
                   Custom gesture learning and personalization
                 </Text>
               </View>
               <View style={styles.exclusiveItem}>
-                <Text style={styles.checkmark}>✓</Text>
+                <Check size={16} color="#22C55E" />
                 <Text style={styles.exclusiveText}>
                   Real-time chat integration
                 </Text>
               </View>
               <View style={styles.exclusiveItem}>
-                <Text style={styles.checkmark}>✓</Text>
+                <Check size={16} color="#22C55E" />
                 <Text style={styles.exclusiveText}>
                   Social features and community
                 </Text>
@@ -184,9 +191,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  featureIcon: {
-    fontSize: 32,
+  featureIconContainer: {
     marginRight: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   featureTextContainer: {
     flex: 1,
@@ -210,11 +218,17 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 32,
   },
+  exclusiveTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
   exclusiveTitle: {
     color: 'rgba(249, 159, 18, 0.9)',
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 8,
     textAlign: 'center',
   },
   exclusiveList: {

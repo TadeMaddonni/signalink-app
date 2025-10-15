@@ -1,8 +1,9 @@
-import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Platform, Text } from 'react-native';
+import { Compass, Home, MessageCircle, User } from 'lucide-react-native';
+import React from 'react';
+import { Platform } from 'react-native';
 
 import { AuthProvider, useAuth } from '../../contexts/auth/AuthContext';
 import '../../utils/i18n';
@@ -12,18 +13,18 @@ import LoginScreen from '../../screens/auth/LoginScreen';
 import RegisterScreen from '../../screens/auth/RegisterScreen';
 
 // Onboarding screens
+import BenefitsScreen from '../../screens/onboarding/BenefitsScreen';
 import ConnectGloveScreen from '../../screens/onboarding/ConnectGloveScreen';
 import HowItWorksScreen from '../../screens/onboarding/HowItWorksScreen';
-import BenefitsScreen from '../../screens/onboarding/BenefitsScreen';
 
 // Tab screens
-import HomeScreen from '../../screens/home/HomeScreen';
 import ChatScreen from '../../screens/chat/ChatScreen';
 import ExploreScreen from '../../screens/explore/ExploreScreen';
+import HomeScreen from '../../screens/home/HomeScreen';
 import ProfileScreen from '../../screens/profile/ProfileScreen';
 
 // Navigation types
-import { RootStackParamList, AuthStackParamList, TabParamList, OnboardingStackParamList } from '../../types';
+import { AuthStackParamList, OnboardingStackParamList, RootStackParamList, TabParamList } from '../../types';
 
 // Stack navigators
 const AuthStack = createStackNavigator<AuthStackParamList>();
@@ -104,7 +105,7 @@ function TabNavigatorComponent() {
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24 }}>🏠</Text>
+            <Home size={24} color={color} />
           ),
         }}
       />
@@ -114,7 +115,7 @@ function TabNavigatorComponent() {
         options={{
           tabBarLabel: 'Chat',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24 }}>💬</Text>
+            <MessageCircle size={24} color={color} />
           ),
         }}
       />
@@ -124,7 +125,7 @@ function TabNavigatorComponent() {
         options={{
           tabBarLabel: 'Explore',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24 }}>🌟</Text>
+            <Compass size={24} color={color} />
           ),
         }}
       />
@@ -134,7 +135,7 @@ function TabNavigatorComponent() {
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24 }}>👤</Text>
+            <User size={24} color={color} />
           ),
         }}
       />
@@ -186,4 +187,5 @@ export function NavigationService() {
 }
 
 // Export types
-export { RootStackParamList, AuthStackParamList, TabParamList };
+export { AuthStackParamList, RootStackParamList, TabParamList };
+
