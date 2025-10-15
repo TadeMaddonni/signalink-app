@@ -4,8 +4,8 @@ import { Image, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Button } from "../../src/components/ui/Button";
-import "../../src/utils/i18n"; // Initialize i18n
+import { Button } from "../src/components/ui/Button";
+import "../src/utils/i18n"; // Initialize i18n
 
 export default function OnboardingScreen() {
   const handleLogin = () => {
@@ -29,7 +29,7 @@ export default function OnboardingScreen() {
 
         {/* Glove Image */}
         <Image
-          source={require("../../assets/images/glove.png")}
+          source={require("../assets/images/glove.png")}
           style={styles.gloveImage}
           resizeMode="contain"
         />

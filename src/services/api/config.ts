@@ -2,7 +2,7 @@ import { API_ROUTES } from '../../routes';
 
 // Configuración de la API
 export const API_CONFIG = {
-  BASE_URL: 'http://172.20.10.3:8080/api', // URL del backend con prefijo /api
+  BASE_URL: 'http://192.168.1.41:8080/api', // Cambia esto por la URL de tu backend
   ROUTES: API_ROUTES,
   TIMEOUT: 10000, // 10 segundos
   REQUEST_TIMEOUT: 30000, // 30 segundos para requests largos

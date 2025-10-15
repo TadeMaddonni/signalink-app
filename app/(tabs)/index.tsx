@@ -22,7 +22,8 @@ export default function TabTwoScreen() {
   }, []);
 
   const handleWithGlove = async () => {
-    router.push("/auth/login");
+    await bluetoothService.connectToDevice("signalink-001");
+    setIsConnected(bluetoothService.isConnected());
   };
 
   const handleWithoutGlove = async () => {
