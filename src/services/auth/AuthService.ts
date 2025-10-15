@@ -49,9 +49,8 @@ class AuthService {
           username: credentials.username,
         };
 
-        // Guardar información del usuario y token
+        // Guardar información del usuario
         await AsyncStorage.setItem('user', JSON.stringify(user));
-        await AsyncStorage.setItem('auth_token', data.token);
         
         return user;
       } else {
