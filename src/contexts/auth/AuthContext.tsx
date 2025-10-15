@@ -8,7 +8,8 @@ type AuthAction =
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'LOGIN_SUCCESS'; payload: User }
   | { type: 'LOGOUT' }
-  | { type: 'REGISTER_SUCCESS'; payload: User };
+  | { type: 'REGISTER_SUCCESS'; payload: User }
+  | { type: 'COMPLETE_ONBOARDING' };
 
 // Initial State
 const initialState: AuthState = {
@@ -16,6 +17,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isLoading: false,
   error: null,
+  hasCompletedOnboarding: false,
 };
 
 // Auth Reducer
@@ -48,6 +50,12 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         isAuthenticated: false,
         isLoading: false,
         error: null,
+        hasCompletedOnboarding: false,
+      };
+    case 'COMPLETE_ONBOARDING':
+      return {
+        ...state,
+        hasCompletedOnboarding: true,
       };
     default:
       return state;
@@ -60,6 +68,7 @@ interface AuthContextType extends AuthState {
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
+  completeOnboarding: () => void;
 }
 
 // Create Context
@@ -133,12 +142,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'SET_ERROR', payload: null });
   };
 
+  const completeOnboarding = () => {
+    dispatch({ type: 'COMPLETE_ONBOARDING' });
+  };
+
   const value: AuthContextType = {
     ...state,
     login,
     register,
     logout,
     clearError,
+    completeOnboarding,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

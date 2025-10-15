@@ -1,72 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
-  Image,
+  StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
-import Animated, { 
-  FadeIn, 
-  FadeInDown, 
-  SlideInUp,
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withRepeat,
-} from 'react-native-reanimated';
-import * as Animatable from 'react-native-animatable';
 
-import { Button } from '../../components/ui/Button';
 import { BluetoothService } from '../../services/bluetooth/BluetoothService';
-import '../../utils/i18n'; // Initialize i18n
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+import '../../utils/i18n';
 
 export default function ConnectGloveScreen({ navigation }: any) {
-  const { t } = useTranslation();
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-  
-  // Animation values
-  const glowScale = useSharedValue(1);
-  const gloveRotation = useSharedValue(0);
-  const gloveOpacity = useSharedValue(0.7);
-
-  useEffect(() => {
-    // Animate glow effect
-    glowScale.value = withRepeat(
-      withSpring(1.3, { damping: 20 }),
-      -1,
-      true
-    );
-    
-    // Animate glove rotation
-    gloveRotation.value = withRepeat(
-      withSpring(25, { damping: 15 }),
-      -1,
-      true
-    );
-    
-    // Animate glove opacity
-    gloveOpacity.value = withRepeat(
-      withSpring(1, { damping: 10 }),
-      -1,
-      true
-    );
-  }, []);
-
-  const glowAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: glowScale.value }],
-  }));
-
-  const gloveAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${gloveRotation.value}deg` }],
-    opacity: gloveOpacity.value,
-  }));
 
   const handleConnectGlove = async () => {
     setIsConnecting(true);
@@ -98,94 +45,69 @@ export default function ConnectGloveScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <SafeAreaView style={styles.container}>
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex-1">
-          {/* Glove Image Background */}
-          <View className="absolute top-10 right-0">
-            <Animated.View style={gloveAnimatedStyle}>
-              {/* Rotated glove placeholder - would be actual image in production */}
-              <View className="w-80 h-[400px] bg-gradient-to-br from-primary-500/20 to-green-500/20 rounded-t-full">
-                <View className="w-full h-full bg-gray-800/80 rounded-t-full items-center justify-center">
-                  <Text className="text-white text-lg font-inter-light">
-                    Signalink Glove
-                  </Text>
-                </View>
-              </View>
-            </Animated.View>
-            
-            {/* Glowing effect */}
-            <Animated.View
-              style={glowAnimatedStyle}
-              className="absolute top-20 w-32 h-32 bg-primary-500/30 rounded-full blur-xl"
-            />
+        <View style={styles.content}>
+          {/* Glove Placeholder */}
+          <View style={styles.gloveContainer}>
+            <View style={styles.glovePlaceholder}>
+              <Text style={styles.gloveText}>
+                🖐️
+              </Text>
+              <Text style={styles.gloveLabel}>
+                Signalink Glove
+              </Text>
+            </View>
           </View>
 
           {/* Content */}
-          <View className="px-6 pt-20 pb-16 flex-1">
+          <View style={styles.textContent}>
             {/* Header */}
-            <Animated.View entering={FadeInDown.delay(200)}>
-              <Text 
-                className="text-white text-2xl mb-4 font-inter-medium"
-                style={{
-                  textShadowColor: '#d2981d',
-                  textShadowOffset: { width: 0, height: 0.4 },
-                  textShadowRadius: 10,
-                }}
-              >
-                {t('onboarding.connectGlove.title')}
+            <View style={styles.header}>
+              <Text style={styles.title}>
+                Connect Your Glove
               </Text>
-              <Text 
-                className="text-gray-300 text-base leading-6 font-inter-light"
-              >
-                {t('onboarding.connectGlove.subtitle')}
+              <Text style={styles.subtitle}>
+                Turn on your Signalink glove and tap the button below to connect via Bluetooth
               </Text>
-            </Animated.View>
+            </View>
 
             {/* Connection Status */}
             {isConnected && (
-              <Animatable.View
-                animation="bounceIn"
-                duration={800}
-                className="mt-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl"
-              >
-                <Text className="text-green-300 font-inter-medium text-center">
+              <View style={styles.successCard}>
+                <Text style={styles.successText}>
                   ✅ Glove Connected Successfully!
                 </Text>
-              </Animatable.View>
+              </View>
             )}
 
             {/* Bottom Section */}
-            <View className="flex-1 justify-end pb-8">
-              <Animated.View entering={SlideInUp.delay(400)}>
-                <Button
-                  title={isConnecting ? 'Connecting...' : t('onboarding.connectGlove.button')}
-                  onPress={handleConnectGlove}
-                  variant="primary"
-                  loading={isConnecting}
-                  disabled={isConnected}
-                />
-                
-                <TouchableOpacity 
-                  onPress={handleSkipConnection}
-                  className="mt-4"
-                  disabled={isConnecting}
-                >
-                  <Text 
-                    className="text-gray-400 font-inter-light text-center"
-                    style={{
-                      textShadowColor: '#d2981d',
-                      textShadowOffset: { width: 0, height: 0.4 },
-                      textShadowRadius: 10,
-                    }}
-                  >
-                    {t('onboarding.connectGlove.discoverMore')}
-                  </Text>
-                </TouchableOpacity>
-              </Animated.View>
+            <View style={styles.buttonsContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.primaryButton,
+                  (isConnecting || isConnected) && styles.buttonDisabled
+                ]}
+                onPress={handleConnectGlove}
+                disabled={isConnecting || isConnected}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {isConnecting ? 'Connecting...' : isConnected ? 'Connected' : 'Connect Glove'}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                onPress={handleSkipConnection}
+                style={styles.skipButton}
+                disabled={isConnecting}
+              >
+                <Text style={styles.skipButtonText}>
+                  Skip for now
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -193,3 +115,114 @@ export default function ConnectGloveScreen({ navigation }: any) {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  scrollView: {
+    flexGrow: 1,
+  },
+  content: {
+    flex: 1,
+  },
+  gloveContainer: {
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingBottom: 40,
+  },
+  glovePlaceholder: {
+    width: 200,
+    height: 200,
+    backgroundColor: 'rgba(249, 159, 18, 0.1)',
+    borderWidth: 2,
+    borderColor: 'rgba(249, 159, 18, 0.3)',
+    borderRadius: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gloveText: {
+    fontSize: 80,
+    marginBottom: 8,
+  },
+  gloveLabel: {
+    color: '#ffffff',
+    fontSize: 16,
+  },
+  textContent: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 16,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  title: {
+    color: '#ffffff',
+    fontSize: 24,
+    fontWeight: '600',
+    marginBottom: 16,
+    textShadowColor: '#d2981d',
+    textShadowOffset: { width: 0, height: 0.4 },
+    textShadowRadius: 10,
+  },
+  subtitle: {
+    color: '#D1D5DB',
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  successCard: {
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 24,
+  },
+  successText: {
+    color: '#86EFAC',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  buttonsContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingBottom: 32,
+    gap: 16,
+  },
+  primaryButton: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    shadowColor: '#f99f12',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.55,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+  primaryButtonText: {
+    color: '#000000',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  skipButton: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  skipButtonText: {
+    color: '#9CA3AF',
+    fontSize: 16,
+    textAlign: 'center',
+    textShadowColor: '#d2981d',
+    textShadowOffset: { width: 0, height: 0.4 },
+    textShadowRadius: 10,
+  },
+});

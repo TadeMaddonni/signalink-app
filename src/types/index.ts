@@ -17,6 +17,7 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  hasCompletedOnboarding: boolean;
 }
 
 export interface LoginCredentials {
@@ -114,12 +115,19 @@ export interface ChatRoom {
 // Navigation Types
 export type RootStackParamList = {
   Auth: undefined;
+  Onboarding: undefined;
   MainTabs: undefined;
 };
 
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
+};
+
+export type OnboardingStackParamList = {
+  ConnectGlove: undefined;
+  HowItWorks: undefined;
+  Benefits: undefined;
 };
 
 export type TabParamList = {

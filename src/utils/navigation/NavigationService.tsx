@@ -11,6 +11,11 @@ import '../../utils/i18n';
 import LoginScreen from '../../screens/auth/LoginScreen';
 import RegisterScreen from '../../screens/auth/RegisterScreen';
 
+// Onboarding screens
+import ConnectGloveScreen from '../../screens/onboarding/ConnectGloveScreen';
+import HowItWorksScreen from '../../screens/onboarding/HowItWorksScreen';
+import BenefitsScreen from '../../screens/onboarding/BenefitsScreen';
+
 // Tab screens
 import HomeScreen from '../../screens/home/HomeScreen';
 import ChatScreen from '../../screens/chat/ChatScreen';
@@ -18,10 +23,11 @@ import ExploreScreen from '../../screens/explore/ExploreScreen';
 import ProfileScreen from '../../screens/profile/ProfileScreen';
 
 // Navigation types
-import { RootStackParamList, AuthStackParamList, TabParamList } from '../../types';
+import { RootStackParamList, AuthStackParamList, TabParamList, OnboardingStackParamList } from '../../types';
 
 // Stack navigators
 const AuthStack = createStackNavigator<AuthStackParamList>();
+const OnboardingStack = createStackNavigator<OnboardingStackParamList>();
 const TabNavigator = createBottomTabNavigator<TabParamList>();
 const RootStack = createStackNavigator<RootStackParamList>();
 
@@ -44,6 +50,29 @@ function AuthStackNavigator() {
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Register" component={RegisterScreen} />
     </AuthStack.Navigator>
+  );
+}
+
+// Onboarding Stack
+function OnboardingStackNavigator() {
+  return (
+    <OnboardingStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: '#000000' },
+        cardStyleInterpolator: Platform.OS === 'ios' 
+          ? ({ current }: any) => ({
+            cardStyle: {
+              opacity: current.progress,
+            },
+          })
+          : undefined,
+      }}
+    >
+      <OnboardingStack.Screen name="ConnectGlove" component={ConnectGloveScreen} />
+      <OnboardingStack.Screen name="HowItWorks" component={HowItWorksScreen} />
+      <OnboardingStack.Screen name="Benefits" component={BenefitsScreen} />
+    </OnboardingStack.Navigator>
   );
 }
 
@@ -115,7 +144,7 @@ function TabNavigatorComponent() {
 
 // Main App Navigator
 function AppNavigator() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, hasCompletedOnboarding } = useAuth();
 
   return (
     <RootStack.Navigator
@@ -134,8 +163,11 @@ function AppNavigator() {
       {!isAuthenticated ? (
         // Not authenticated - show auth screens
         <RootStack.Screen name="Auth" component={AuthStackNavigator} />
+      ) : !hasCompletedOnboarding ? (
+        // Authenticated but hasn't completed onboarding
+        <RootStack.Screen name="Onboarding" component={OnboardingStackNavigator} />
       ) : (
-        // Authenticated - show main tabs (home screen)
+        // Authenticated and completed onboarding - show main tabs
         <RootStack.Screen name="MainTabs" component={TabNavigatorComponent} />
       )}
     </RootStack.Navigator>
