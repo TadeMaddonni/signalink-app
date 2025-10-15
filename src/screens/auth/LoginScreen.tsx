@@ -23,7 +23,7 @@ export default function LoginScreen({ navigation }: any) {
   const { login, isLoading, clearError } = useAuth();
   
   const [credentials, setCredentials] = useState<LoginCredentials>({
-    email: '',
+    username: '',
     password: '',
   });
   
@@ -32,10 +32,8 @@ export default function LoginScreen({ navigation }: any) {
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
     
-    if (!credentials.email) {
-      errors.email = t('errors.validationError');
-    } else if (!/\S+@\S+\.\S+/.test(credentials.email)) {
-      errors.email = 'Invalid email format';
+    if (!credentials.username) {
+      errors.username = t('errors.validationError');
     }
     
     if (!credentials.password) {
@@ -96,14 +94,14 @@ export default function LoginScreen({ navigation }: any) {
             <Animated.View entering={FadeInDown.delay(200)}>
               <Input
                 label={t('login.emailPlaceholder')}
-                value={credentials.email}
+                value={credentials.username}
                 onChangeText={(text) => 
-                  setCredentials(prev => ({ ...prev, email: text }))
+                  setCredentials(prev => ({ ...prev, username: text }))
                 }
                 placeholder={t('login.emailPlaceholder')}
-                keyboardType="email-address"
-                leftIcon="✉️"
-                error={fieldErrors.email}
+                keyboardType="default"
+                leftIcon="👤"
+                error={fieldErrors.username}
               />
 
               <Input

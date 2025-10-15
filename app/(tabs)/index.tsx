@@ -50,13 +50,13 @@ export default function TabTwoScreen() {
         <View style={styles.connectButtonContainer}>
           {/* has glove */}
           <Button
-            text="Tengo guante Signalink"
+            title="Tengo guante Signalink"
             onPress={handleWithGlove}
             variant="primary"
           />
           {/* Don't has glove */}
           <Button
-            text="No tengo guante Signalink"
+            title="No tengo guante Signalink"
             onPress={handleWithoutGlove}
             variant="secondary"
           />

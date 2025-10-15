@@ -1,38 +1,58 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
-
-interface ButtonProps {
-  text: string;
-  onPress: () => void;
-  variant?: "primary" | "secondary";
-  disabled?: boolean;
-}
+import { StyleSheet, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { ButtonProps } from "../../types";
 
 export const Button: React.FC<ButtonProps> = ({
-  text,
+  title,
   onPress,
   variant = "primary",
+  size = "md",
+  loading = false,
   disabled = false,
+  icon,
 }) => {
+  const getButtonStyle = () => {
+    if (variant === "primary") return styles.primaryButton;
+    if (variant === "outline") return styles.outlineButton;
+    return styles.secondaryButton;
+  };
+
+  const getTextStyle = () => {
+    if (variant === "primary") return styles.primaryText;
+    if (variant === "outline") return styles.outlineText;
+    return styles.secondaryText;
+  };
+
+  const getLoadingColor = () => {
+    if (variant === "primary") return "#ffffff";
+    if (variant === "secondary") return "#000000";
+    return "#f99f12";
+  };
+
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        variant === "primary" ? styles.primaryButton : styles.secondaryButton,
+        getButtonStyle(),
         disabled && styles.disabledButton,
+        loading && styles.disabledButton,
       ]}
       onPress={onPress}
-      disabled={disabled}
+      disabled={disabled || loading}
     >
-      <Text
-        style={[
-          styles.buttonText,
-          variant === "primary" ? styles.primaryText : styles.secondaryText,
-          disabled && styles.disabledText,
-        ]}
-      >
-        {text}
-      </Text>
+      {loading ? (
+        <ActivityIndicator color={getLoadingColor()} />
+      ) : (
+        <Text
+          style={[
+            styles.buttonText,
+            getTextStyle(),
+            disabled && styles.disabledText,
+          ]}
+        >
+          {icon && `${icon} `}{title}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };
@@ -50,12 +70,15 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   primaryButton: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#f99f12",
   },
   secondaryButton: {
+    backgroundColor: "#ffffff",
+  },
+  outlineButton: {
     backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#ffffff",
+    borderWidth: 2,
+    borderColor: "#f99f12",
   },
   disabledButton: {
     backgroundColor: "#666666",
@@ -67,10 +90,13 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   primaryText: {
-    color: "#000000",
+    color: "#ffffff",
   },
   secondaryText: {
-    color: "#ffffff",
+    color: "#000000",
+  },
+  outlineText: {
+    color: "#f99f12",
   },
   disabledText: {
     color: "#999999",

@@ -37,13 +37,13 @@ export default function OnboardingScreen() {
         <View style={styles.buttonContainer}>
           {/* Login Button */}
           <Button
-            text="Iniciar sesión"
+            title="Iniciar sesión"
             onPress={handleLogin}
             variant="primary"
           />
           {/* Register Button */}
           <Button
-            text="Registrarse"
+            title="Registrarse"
             onPress={handleRegister}
             variant="secondary"
           />

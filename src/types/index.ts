@@ -44,6 +44,7 @@ export interface ApiResponse<T = any> {
 export interface LoginSuccessResponse {
   success: true;
   message: string;
+  token: string;
   user: {
     id: number;
     name: string;
@@ -113,14 +114,12 @@ export interface ChatRoom {
 // Navigation Types
 export type RootStackParamList = {
   Auth: undefined;
-  Onboarding: undefined;
   MainTabs: undefined;
 };
 
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
-  ProfileSetup: undefined;
 };
 
 export type TabParamList = {
