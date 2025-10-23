@@ -1,97 +1,140 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { ButtonProps } from '../../types';
+import {
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  ViewStyle,
+} from 'react-native';
 
-export const Button: React.FC<ButtonProps> = ({
+export type ButtonVariant = 'filled' | 'outline' | 'text';
+
+interface ButtonProps {
+  title: string;
+  onPress: () => void;
+  variant?: ButtonVariant;
+  disabled?: boolean;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
+}
+
+export default function Button({
   title,
   onPress,
-  variant = 'primary',
-  size = 'md',
-  loading = false,
+  variant = 'filled',
   disabled = false,
-  icon,
-}) => {
-
-  const getVariantStyles = () => {
+  style,
+  textStyle,
+}: ButtonProps) {
+  const getButtonStyle = (): ViewStyle => {
+    const baseStyle: ViewStyle[] = [styles.baseButton];
+    
     switch (variant) {
-      case 'primary':
-        return {
-          container: 'bg-white rounded-3xl shadow-lg',
-          text: 'text-black',
-          shadow: 'shadow-[0px_0.3px_24px_rgba(222,120,28,0.15)]',
-        };
-      case 'secondary':
-        return {
-          container: 'bg-primary-500 rounded-3xl',
-          text: 'text-white',
-          shadow: 'shadow-lg',
-        };
+      case 'filled':
+        baseStyle.push(styles.filledButton);
+        break;
       case 'outline':
-        return {
-          container: 'border border-primary-500 rounded-3xl bg-transparent',
-          text: 'text-primary-500',
-          shadow: '',
-        };
-      default:
-        return {
-          container: 'bg-white rounded-3xl shadow-lg',
-          text: 'text-black',
-          shadow: 'shadow-[0px_0.3px_24px_rgba(222,120,28,0.15)]',
-        };
+        baseStyle.push(styles.outlineButton);
+        break;
+      case 'text':
+        baseStyle.push(styles.textButton);
+        break;
     }
+    
+    if (disabled) {
+      baseStyle.push(styles.buttonDisabled);
+    }
+    
+    if (style) {
+      baseStyle.push(style);
+    }
+    
+    return StyleSheet.flatten(baseStyle);
   };
 
-  const getSizeStyles = () => {
-    switch (size) {
-      case 'sm':
-        return {
-          container: 'h-10 px-4',
-          text: 'text-sm',
-        };
-      case 'md':
-        return {
-          container: 'h-12 px-6',
-          text: 'text-base',
-        };
-      case 'lg':
-        return {
-          container: 'h-14 px-8',
-          text: 'text-lg',
-        };
-      default:
-        return {
-          container: 'h-12 px-6',
-          text: 'text-base',
-        };
+  const getTextStyle = (): TextStyle => {
+    const baseTextStyle: TextStyle[] = [styles.baseText];
+    
+    switch (variant) {
+      case 'filled':
+        baseTextStyle.push(styles.filledText);
+        break;
+      case 'outline':
+        baseTextStyle.push(styles.outlineText);
+        break;
+      case 'text':
+        baseTextStyle.push(styles.textText);
+        break;
     }
+    
+    if (disabled) {
+      baseTextStyle.push(styles.textDisabled);
+    }
+    
+    if (textStyle) {
+      baseTextStyle.push(textStyle);
+    }
+    
+    return StyleSheet.flatten(baseTextStyle);
   };
-
-  const styles = getVariantStyles();
-  const sizeStyles = getSizeStyles();
 
   return (
-    <Pressable
-      className={`${styles.container} ${styles.shadow} ${sizeStyles.container} ${
-        disabled ? 'opacity-50' : ''
-      } justify-center items-center`}
-      onPress={disabled || loading ? undefined : onPress}
-      disabled={disabled || loading}
+    <TouchableOpacity
+      style={getButtonStyle()}
+      onPress={onPress}
+      disabled={disabled}
     >
-      <View className="flex-row items-center justify-center space-x-2">
-        {loading ? (
-          <ActivityIndicator 
-            size="small" 
-            color={variant === 'primary' ? '#000000' : '#ffffff'} 
-          />
-        ) : (
-          <>
-            <Text className={`${styles.text} ${sizeStyles.text} font-inter-medium`}>
-              {title}
-            </Text>
-            {icon && <Text className="text-lg">{icon}</Text>}
-          </>
-        )}
-      </View>
-    </Pressable>
+      <Text style={getTextStyle()}>{title}</Text>
+    </TouchableOpacity>
   );
-};
+}
+
+const styles = StyleSheet.create({
+  baseButton: {
+    borderRadius: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  filledButton: {
+    backgroundColor: '#ffffff',
+    shadowColor: '#f99f12',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.55,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  outlineButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#ffffff',
+  },
+  textButton: {
+    backgroundColor: 'transparent',
+    paddingVertical: 12,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+  baseText: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  filledText: {
+    color: '#000000',
+  },
+  outlineText: {
+    color: '#ffffff',
+  },
+  textText: {
+    color: '#9CA3AF',
+    fontSize: 16,
+    textAlign: 'center',
+    textShadowColor: '#d2981d',
+    textShadowOffset: { width: 0, height: 0.4 },
+    textShadowRadius: 10,
+  },
+  textDisabled: {
+    opacity: 0.5,
+  },
+});

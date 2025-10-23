@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthState, User, LoginCredentials, RegisterCredentials } from '../../types';
+import React, { createContext, ReactNode, useContext, useEffect, useReducer } from 'react';
+import AuthService from '../../services/auth/AuthService';
+import { AuthState, LoginCredentials, RegisterCredentials, User } from '../../types';
 
 // Auth Actions
 type AuthAction =
@@ -8,7 +8,9 @@ type AuthAction =
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'LOGIN_SUCCESS'; payload: User }
   | { type: 'LOGOUT' }
-  | { type: 'REGISTER_SUCCESS'; payload: User };
+  | { type: 'REGISTER_SUCCESS'; payload: User }
+  | { type: 'COMPLETE_ONBOARDING' }
+  | { type: 'GUEST_LOGIN' };
 
 // Initial State
 const initialState: AuthState = {
@@ -16,6 +18,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isLoading: false,
   error: null,
+  hasCompletedOnboarding: false,
 };
 
 // Auth Reducer
@@ -48,6 +51,21 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         isAuthenticated: false,
         isLoading: false,
         error: null,
+        hasCompletedOnboarding: false,
+      };
+    case 'COMPLETE_ONBOARDING':
+      return {
+        ...state,
+        hasCompletedOnboarding: true,
+      };
+    case 'GUEST_LOGIN':
+      return {
+        ...state,
+        user: { id: 0, name: 'Guest User', username: 'Guest User', email: 'guest@signalink.com' },
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+        hasCompletedOnboarding: false, // Guest needs to go through onboarding
       };
     default:
       return state;
@@ -60,6 +78,8 @@ interface AuthContextType extends AuthState {
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
+  completeOnboarding: () => void;
+  loginAsGuest: () => void;
 }
 
 // Create Context
@@ -81,9 +101,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const loadSavedUser = async () => {
     try {
-      const savedUser = await AsyncStorage.getItem('user');
-      if (savedUser) {
-        const user: User = JSON.parse(savedUser);
+      const user = await AuthService.getCurrentUser();
+      if (user) {
         dispatch({ type: 'LOGIN_SUCCESS', payload: user });
       }
     } catch (error) {
@@ -95,27 +114,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock validation
-      if (credentials.email === 'test@example.com' && credentials.password === '123456') {
-        const user: User = {
-          id: '1',
-          email: credentials.email,
-          name: 'Test User',
-          language: 'es',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        await AsyncStorage.setItem('user', JSON.stringify(user));
-        dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-      } else {
-        dispatch({ type: 'SET_ERROR', payload: 'Credenciales incorrectas' });
-      }
+      const user = await AuthService.login(credentials);
+      dispatch({ type: 'LOGIN_SUCCESS', payload: user });
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: 'Error de conexión. Inténtalo de nuevo.' });
+      const errorMessage = error instanceof Error ? error.message : 'Error de conexión. Inténtalo de nuevo.';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
     }
   };
 
@@ -123,34 +126,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock validation
-      if (credentials.password !== credentials.confirmPassword) {
+      // Validar que las contraseñas coincidan (si confirmPassword está presente)
+      if (credentials.confirmPassword && credentials.password !== credentials.confirmPassword) {
         dispatch({ type: 'SET_ERROR', payload: 'Las contraseñas no coinciden' });
         return;
       }
 
-      const user: User = {
-        id: Date.now().toString(),
-        email: credentials.email,
-        name: credentials.name,
-        language: 'es',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      await AsyncStorage.setItem('user', JSON.stringify(user));
+      const user = await AuthService.register(credentials);
       dispatch({ type: 'REGISTER_SUCCESS', payload: user });
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: 'Error al crear la cuenta. Inténtalo de nuevo.' });
+      const errorMessage = error instanceof Error ? error.message : 'Error al crear la cuenta. Inténtalo de nuevo.';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
     }
   };
 
   const logout = async () => {
     try {
-      await AsyncStorage.removeItem('user');
+      await AuthService.logout();
       dispatch({ type: 'LOGOUT' });
     } catch (error) {
       console.error('Error during logout:', error);
@@ -161,12 +153,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'SET_ERROR', payload: null });
   };
 
+  const completeOnboarding = () => {
+    dispatch({ type: 'COMPLETE_ONBOARDING' });
+  };
+
+  const loginAsGuest = () => {
+    dispatch({ type: 'GUEST_LOGIN' });
+  };
+
   const value: AuthContextType = {
     ...state,
     login,
     register,
     logout,
     clearError,
+    completeOnboarding,
+    loginAsGuest,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

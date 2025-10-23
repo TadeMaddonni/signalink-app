@@ -1,160 +1,254 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
-import Animated, { FadeInDown, SlideInUp } from 'react-native-reanimated';
-import * as Animatable from 'react-native-animatable';
+import { Check, Globe, Target, Zap } from "lucide-react-native";
+import React from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
-import '../../utils/i18n'; // Initialize i18n
+import Button from "../../components/ui/Button";
+import { useAuth } from "../../contexts/auth/AuthContext";
+import "../../utils/i18n";
 
 export default function BenefitsScreen({ navigation }: any) {
-  const { t } = useTranslation();
+  const { completeOnboarding } = useAuth();
 
   const features = [
     {
-      icon: '⚡',
-      title: t('onboarding.benefits.feature1'),
-      description: 'Get instant translation of your sign language gestures into spoken text.',
+      icon: Zap,
+      title: "Real-Time Translation",
+      description:
+        "Get instant translation of your sign language gestures into spoken text.",
     },
     {
-      icon: '🌍',
-      title: t('onboarding.benefits.feature2'),
-      description: 'Communicate in multiple languages and break language barriers.',
+      icon: Globe,
+      title: "Multi-Language Support",
+      description:
+        "Communicate in multiple languages and break language barriers.",
     },
     {
-      icon: '🎯',
-      title: t('onboarding.benefits.feature3'),
-      description: 'High-precision gesture recognition for accurate communication.',
+      icon: Target,
+      title: "High Precision",
+      description:
+        "High-precision gesture recognition for accurate communication.",
     },
   ];
 
   const handleGetStarted = () => {
-    // Navigate to main app
-    navigation.navigate('MainTabs');
+    // Mark onboarding as complete
+    completeOnboarding();
   };
 
   const handleSkip = () => {
-    navigation.navigate('MainTabs');
+    // Mark onboarding as complete
+    completeOnboarding();
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1 }}
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex-1 px-6">
+        <View style={styles.content}>
           {/* Header */}
-          <Animated.View entering={FadeInDown.delay(200)} className="mt-8 mb-12">
-            <Text 
-              className="text-white text-3xl font-inter-medium mb-4 text-center"
-              style={{
-                textShadowColor: '#d2981d',
-                textShadowOffset: { width: 0, height: 0.4 },
-                textShadowRadius: 10,
-              }}
-            >
-              {t('onboarding.benefits.title')}
+          <View style={styles.header}>
+            <Text style={styles.title}>Why Signalink?</Text>
+            <Text style={styles.subtitle}>
+              Discover the features that make communication effortless
             </Text>
-            <Text className="text-gray-300 text-lg font-inter-light leading-6 text-center">
-              {t('onboarding.benefits.subtitle')}
-            </Text>
-          </Animated.View>
-
-          {/* Features */}
-          <View className="space-y-6 mb-12">
-            {features.map((feature, index) => (
-              <Animated.View
-                key={index}
-                entering={SlideInUp.delay(300 + index * 200)}
-              >
-                <Card variant="elevated" className="bg-gray-800/50 border border-gray-700">
-                  <View className="flex-row items-center">
-                    <Animatable.Text
-                      animation="bounceIn"
-                      delay={index * 150}
-                      className="text-4xl mr-4"
-                    >
-                      {feature.icon}
-                    </Animatable.Text>
-                    
-                    <View className="flex-1">
-                      <Text className="text-white text-lg font-inter-medium mb-2">
-                        {feature.title}
-                      </Text>
-                      <Text className="text-gray-300 font-inter-light leading-5">
-                        {feature.description}
-                      </Text>
-                    </View>
-                  </View>
-                </Card>
-              </Animated.View>
-            ))}
           </View>
 
-          {/* Additional Benefits */}
-          <Animated.View entering={FadeInDown.delay(800)}>
-            <Card variant="outlined" className="bg-primary-500/10 border border-primary-500/30">
-              <View className="p-4">
-                <Text className="text-primary-200 font-inter-medium text-lg mb-2 text-center">
-                  ✨ Exclusive Features
-                </Text>
-                <View className="space-y-2 mt-4">
-                  <View className="flex-row items-center">
-                    <Text className="text-green-400 mr-2">✓</Text>
-                    <Text className="text-gray-300 font-inter-light">
-                      Voice synthesis for audible communication
-                    </Text>
+          {/* Features */}
+          <View style={styles.featuresContainer}>
+            {features.map((feature, index) => (
+              <View key={index} style={styles.featureCard}>
+                <View style={styles.featureContent}>
+                  <View style={styles.featureIconContainer}>
+                    {React.createElement(feature.icon, {
+                      size: 32,
+                      color: "#f99f12",
+                    })}
                   </View>
-                  <View className="flex-row items-center">
-                    <Text className="text-green-400 mr-2">✓</Text>
-                    <Text className="text-gray-300 font-inter-light">
-                      Custom gesture learning and personalization
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center">
-                    <Text className="text-green-400 mr-2">✓</Text>
-                    <Text className="text-gray-300 font-inter-light">
-                      Real-time chat integration
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center">
-                    <Text className="text-green-400 mr-2">✓</Text>
-                    <Text className="text-gray-300 font-inter-light">
-                      Social features and community
+
+                  <View style={styles.featureTextContainer}>
+                    <Text style={styles.featureTitle}>{feature.title}</Text>
+                    <Text style={styles.featureDescription}>
+                      {feature.description}
                     </Text>
                   </View>
                 </View>
               </View>
-            </Card>
-          </Animated.View>
+            ))}
+          </View>
 
-          {/* Bottom Section */}
-          <View className="flex-1 justify-end pb-8 mt-8">
-            <Animated.View entering={SlideInUp.delay(900)} className="space-y-4">
-              <Button
-                title="Get Started"
-                onPress={handleGetStarted}
-                variant="primary"
-                size="lg"
-              />
-              
-              <TouchableOpacity onPress={handleSkip}>
-                <Text className="text-gray-400 font-inter-light text-center">
-                  Continue later
+          {/* Additional Benefits */}
+          <View style={styles.exclusiveCard}>
+            <View style={styles.exclusiveTitleContainer}>
+              <Text style={styles.exclusiveTitle}>Exclusive Features</Text>
+            </View>
+            <View style={styles.exclusiveList}>
+              <View style={styles.exclusiveItem}>
+                <Check size={16} color="#ffffff" />
+                <Text style={styles.exclusiveText}>
+                  Voice synthesis for audible communication
                 </Text>
-              </TouchableOpacity>
-            </Animated.View>
+              </View>
+              <View style={styles.exclusiveItem}>
+                <Check size={16} color="#ffffff" />
+                <Text style={styles.exclusiveText}>
+                  Custom gesture learning and personalization
+                </Text>
+              </View>
+              <View style={styles.exclusiveItem}>
+                <Check size={16} color="#ffffff" />
+                <Text style={styles.exclusiveText}>
+                  Real-time chat integration
+                </Text>
+              </View>
+              <View style={styles.exclusiveItem}>
+                <Check size={16} color="#ffffff" />
+                <Text style={styles.exclusiveText}>
+                  Social features and community
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
       </ScrollView>
+
+      {/* Fixed Bottom Button */}
+      <View style={styles.fixedButtonContainer}>
+        <Button
+          title="Get Started"
+          onPress={handleGetStarted}
+          variant="filled"
+        />
+
+        <Button title="Continue later" onPress={handleSkip} variant="text" />
+      </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#000000",
+  },
+  scrollView: {
+    flexGrow: 1,
+    paddingBottom: 120, // Space for fixed button
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  header: {
+    marginTop: 24,
+    marginBottom: 24,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
+  },
+  title: {
+    color: "#ffffff",
+    fontSize: 32,
+    fontWeight: "700",
+    marginBottom: 12,
+    textAlign: "left",
+    textShadowColor: "#d2981d",
+    textShadowOffset: { width: 0, height: 0.4 },
+    textShadowRadius: 12,
+  },
+  subtitle: {
+    color: "#D1D5DB",
+    fontSize: 18,
+    lineHeight: 26,
+    textAlign: "left",
+    opacity: 0.9,
+  },
+  featuresContainer: {
+    marginBottom: 24,
+  },
+  featureCard: {
+    backgroundColor: "transparent",
+    padding: 16,
+  },
+  featureContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  featureIconContainer: {
+    marginRight: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  featureTextContainer: {
+    flex: 1,
+  },
+  featureTitle: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  featureDescription: {
+    color: "#D1D5DB",
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  exclusiveCard: {
+    backgroundColor: "transparent",
+    padding: 16,
+    marginBottom: 32,
+  },
+  exclusiveTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+
+    gap: 12,
+  },
+  exclusiveTitle: {
+    color: "#ffffff",
+    fontSize: 20,
+    fontWeight: "600",
+    textAlign: "left",
+  },
+  exclusiveList: {
+    marginTop: 16,
+    gap: 8,
+  },
+  exclusiveItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    gap: 12,
+  },
+  checkmark: {
+    color: "#22C55E",
+    marginRight: 8,
+    fontSize: 16,
+  },
+  exclusiveText: {
+    color: "#D1D5DB",
+    fontSize: 14,
+    flex: 1,
+  },
+  fixedButtonContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#000000",
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 32,
+    gap: 12,
+    zIndex: 1000,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+});

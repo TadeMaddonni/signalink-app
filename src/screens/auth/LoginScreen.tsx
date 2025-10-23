@@ -1,60 +1,43 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import * as Animatable from 'react-native-animatable';
 
 import { useAuth } from '../../contexts/auth/AuthContext';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { LoginCredentials } from '../../types';
-import '../../utils/i18n'; // Initialize i18n
+import '../../utils/i18n';
 
 export default function LoginScreen({ navigation }: any) {
-  const { t } = useTranslation();
-  const { login, isLoading, clearError } = useAuth();
+  const { login, loginAsGuest, isLoading, error, clearError } = useAuth();
   
-  const [credentials, setCredentials] = useState<LoginCredentials>({
-    email: '',
-    password: '',
-  });
-  
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
-  const validateForm = (): boolean => {
-    const errors: Record<string, string> = {};
-    
-    if (!credentials.email) {
-      errors.email = t('errors.validationError');
-    } else if (!/\S+@\S+\.\S+/.test(credentials.email)) {
-      errors.email = 'Invalid email format';
-    }
-    
-    if (!credentials.password) {
-      errors.password = t('errors.validationError');
-    } else if (credentials.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
-    }
-    
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<any>({});
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   const handleLogin = async () => {
+    // Simple validation
+    const newErrors: any = {};
+    if (!username) newErrors.username = 'Username is required';
+    if (!password) newErrors.password = 'Password is required';
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    
+    setErrors({});
     clearError();
     
-    if (!validateForm()) return;
-    
     try {
-      await login(credentials);
+      await login({ username, password });
     } catch (error) {
       console.error('Login error:', error);
     }
@@ -64,111 +47,280 @@ export default function LoginScreen({ navigation }: any) {
     navigation.navigate('Register');
   };
 
+  const handleGuestLogin = () => {
+    loginAsGuest();
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={styles.container}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={styles.scrollView}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View className="flex-1 px-6 justify-center">
-            {/* Background glow effect */}
-            <Animated.View
-              entering={FadeIn.delay(200)}
-              className="absolute top-20 right-10 w-32 h-32 bg-primary-500/20 rounded-full blur-3xl"
-            />
-            
-            {/* Header */}
-            <Animated.View entering={FadeInDown.delay(100)}>
-              <Text className="text-white font-inter-medium text-3xl mb-2">
-                {t('login.title')}
-              </Text>
-              <Text className="text-gray-400 font-inter-light text-base mb-8">
-                {t('login.subtitle')}
-              </Text>
-            </Animated.View>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>
+              Welcome Back
+            </Text>
+            <Text style={styles.subtitle}>
+              Sign in to continue with Signalink
+            </Text>
+          </View>
 
-            {/* Form */}
-            <Animated.View entering={FadeInDown.delay(200)}>
-              <Input
-                label={t('login.emailPlaceholder')}
-                value={credentials.email}
-                onChangeText={(text) => 
-                  setCredentials(prev => ({ ...prev, email: text }))
-                }
-                placeholder={t('login.emailPlaceholder')}
-                keyboardType="email-address"
-                leftIcon="✉️"
-                error={fieldErrors.email}
-              />
+          {/* Form */}
+          <View style={styles.form}>
 
-              <Input
-                label={t('login.passwordPlaceholder')}
-                value={credentials.password}
-                onChangeText={(text) => 
-                  setCredentials(prev => ({ ...prev, password: text }))
-                }
-                placeholder={t('login.passwordPlaceholder')}
-                secureTextEntry={true}
-                leftIcon="🔒"
-                error={fieldErrors.password}
-              />
-            </Animated.View>
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.globalErrorText}>
+                  {error}
+                </Text>
+              </View>
+            )}
 
-            {/* Login Button */}
-            <Animated.View entering={FadeInDown.delay(300)}>
-              <Button
-                title={t('login.loginButton')}
+            <View style={styles.inputContainer}>
+              <View style={styles.inputParent}>
+                <Text style={styles.inputLabel}>Username</Text>
+                <TextInput
+                  style={[
+                    styles.input, 
+                    errors.username && styles.inputError,
+                    focusedInput === 'username' && styles.inputFocused
+                  ]}
+                  value={username}
+                  onChangeText={setUsername}
+                  placeholder="Enter your username"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="default"
+                  onFocus={() => setFocusedInput('username')}
+                  onBlur={() => setFocusedInput(null)}
+                />
+                {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
+              </View>
+
+              <View style={styles.inputParent}>
+                <Text style={styles.inputLabel}>Password</Text>
+                <TextInput
+                  style={[
+                    styles.input, 
+                    errors.password && styles.inputError,
+                    focusedInput === 'password' && styles.inputFocused
+                  ]}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Enter your password"
+                  placeholderTextColor="#9CA3AF"
+                  secureTextEntry={true}
+                  onFocus={() => setFocusedInput('password')}
+                  onBlur={() => setFocusedInput(null)}
+                />
+                {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+              </View>
+            </View>
+
+            <View>
+              <TouchableOpacity
+                style={[styles.button, isLoading && styles.buttonDisabled]}
                 onPress={handleLogin}
-                variant="primary"
-                loading={isLoading}
-              />
-            </Animated.View>
-
-            {/* Forgot Password */}
-            <Animated.View entering={FadeInDown.delay(400)}>
-              <TouchableOpacity className="items-center mt-4">
-                <Text className="text-primary-500 font-inter-light text-sm">
-                  {t('login.forgotPassword')}
+                disabled={isLoading}
+              >
+                <Text style={styles.buttonText}>
+                  {isLoading ? 'Signing In...' : 'Sign In'}
                 </Text>
               </TouchableOpacity>
-            </Animated.View>
+            </View>
 
-            {/* Register Link */}
-            <Animated.View entering={FadeInDown.delay(500)}>
-              <View className="flex-row justify-center items-center mt-6 space-x-2">
-                <Text className="text-gray-400 font-inter-light text-sm">
-                  {t('login.registerLink')}
+            <View>
+              <View style={styles.linkContainer}>
+                <Text style={styles.linkText}>
+                  Don't have an account?{' '}
                 </Text>
                 <TouchableOpacity onPress={navigateToRegister}>
-                  <Text className="text-primary-500 font-inter-medium text-sm">
-                    {t('register.registerButton')}
+                  <Text style={styles.linkHighlight}>
+                    Sign up
                   </Text>
                 </TouchableOpacity>
               </View>
-            </Animated.View>
+              
+              <View style={styles.guestContainer}>
+                <TouchableOpacity onPress={handleGuestLogin}>
+                  <Text style={styles.guestText}>
+                    Continuar como invitado
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
-            {/* Demo credentials hint */}
-            <Animatable.View
-              animation="bounceIn"
-              iterationCount={1}
-              delay={650}
-              duration={600}
-              className="mt-8 p-4 bg-primary-500/10 border border-primary-500/30 rounded-xl"
-            >
-              <Text className="text-primary-200 font-inter-light text-sm text-center">
+            <View style={styles.demoCard}>
+              <Text style={styles.demoText}>
                 Demo credentials:{'\n'}
-                Email: test@example.com{'\n'}
+                Username: testuser{'\n'}
                 Password: 123456
               </Text>
-            </Animatable.View>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  scrollView: {
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+  },
+  header: {
+    marginTop: 24,
+    marginBottom: 32,
+    paddingHorizontal: 24,
+    alignItems: "flex-start",
+  },
+  form: {
+    paddingHorizontal: 24,
+  },
+  title: {
+    color: '#ffffff',
+    fontSize: 32,
+    fontWeight: '700',
+    marginBottom: 12,
+    textAlign: 'left',
+    textShadowColor: '#d2981d',
+    textShadowOffset: { width: 0, height: 0.4 },
+    textShadowRadius: 12,
+  },
+  subtitle: {
+    color: '#D1D5DB',
+    fontSize: 18,
+    lineHeight: 26,
+    textAlign: 'left',
+    opacity: 0.9,
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+  },
+  globalErrorText: {
+    color: '#EF4444',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 32,
+  },
+  inputParent: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  inputLabel: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: '#111111',
+    borderWidth: 1,
+    borderColor: '#111111',
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    width: '100%',
+    color: '#ffffff',
+    fontSize: 16,
+    minHeight: 56,
+  },
+  inputFocused: {
+    borderColor: '#f99f12',
+    shadowColor: '#f99f12',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  inputError: {
+    borderColor: '#EF4444',
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 14,
+    marginTop: 4,
+  },
+  button: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginTop: 48,
+    shadowColor: '#f99f12',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.55,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+  buttonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  linkContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 24,
+  },
+  linkText: {
+    color: '#9CA3AF',
+    fontSize: 14,
+  },
+  linkHighlight: {
+    color: '#f99f12',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  guestContainer: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  guestText: {
+    color: '#9CA3AF',
+    fontSize: 16,
+    textDecorationLine: 'underline',
+  },
+  demoCard: {
+    backgroundColor: 'rgba(249, 159, 18, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(249, 159, 18, 0.3)',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 32,
+  },
+  demoText: {
+    color: 'rgba(249, 159, 18, 0.8)',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+});

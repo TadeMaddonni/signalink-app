@@ -1,40 +1,36 @@
+import { Hand, Mic, Smartphone } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
   ScrollView,
-  TouchableOpacity,
-  Dimensions,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
-import Animated, { FadeInDown, SlideInLeft, SlideInRight } from 'react-native-reanimated';
-import * as Animatable from 'react-native-animatable';
 
-import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
-import '../../utils/i18n'; // Initialize i18n
-
-const { width: screenWidth } = Dimensions.get('window');
+import Button from '../../components/ui/Button';
+import ProgressBar from '../../components/ui/ProgressBar';
+import ProgressIndicator from '../../components/ui/ProgressIndicator';
+import StepCard from '../../components/ui/StepCard';
+import '../../utils/i18n';
 
 export default function HowItWorksScreen({ navigation }: any) {
-  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
     {
-      icon: '🖐️',
-      title: t('onboarding.howItWorks.step1'),
+      icon: Hand,
+      title: 'Wear the Glove',
       description: 'Put on the Signalink glove and ensure it\'s powered on',
     },
     {
-      icon: '📱',
-      title: t('onboarding.howItWorks.step2'),
+      icon: Smartphone,
+      title: 'Connect via Bluetooth',
       description: 'Connect the glove to your phone via Bluetooth',
     },
     {
-      icon: '🗣️',
-      title: t('onboarding.howItWorks.step3'),
+      icon: Mic,
+      title: 'Start Signing',
       description: 'Start signing and watch your gestures turn into speech',
     },
   ];
@@ -58,131 +54,116 @@ export default function HowItWorksScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <SafeAreaView style={styles.container}>
+      {/* Progress Bar - Fixed at top */}
+      <ProgressBar progress={(currentStep + 1) / steps.length} />
+      
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex-1 px-6">
+        <View style={styles.content}>
           {/* Header */}
-          <Animated.View entering={FadeInDown.delay(200)} className="mt-8 mb-12">
-            <Text 
-              className="text-white text-3xl font-inter-medium mb-4"
-              style={{
-                textShadowColor: '#d2981d',
-                textShadowOffset: { width: 0, height: 0.4 },
-                textShadowRadius: 10,
-              }}
-            >
-              {t('onboarding.howItWorks.title')}
+          <View style={styles.header}>
+            <Text style={styles.title}>
+              How It Works
             </Text>
-            <Text className="text-gray-300 text-lg font-inter-light leading-6">
-              {t('onboarding.howItWorks.subtitle')}
+            <Text style={styles.subtitle}>
+              Learn how to use your Signalink glove in 3 simple steps
             </Text>
-          </Animated.View>
+          </View>
 
-          {/* Current Step Highlight */}
-          <Animated.View 
-            entering={SlideInLeft.delay(300)}
-            className="mb-8"
-          >
-            <Card variant="elevated" className="bg-gradient-to-r from-primary-500/20 to-green-500/20 border border-primary-500/30">
-              <View className="items-center py-8">
-                <Animatable.Text
-                  animation={currentStep === 0 ? 'bounce' : 'fadeIn'}
-                  duration={500}
-                  className="text-6xl mb-4"
-                >
-                  {steps[currentStep].icon}
-                </Animatable.Text>
-                
-                <Animatable.Text
-                  key={currentStep}
-                  animation="fadeInUp"
-                  duration={400}
-                  className="text-white text-xl font-inter-medium mb-3 text-center"
-                >
-                  {steps[currentStep].title}
-                </Animatable.Text>
-                
-                <Animatable.Text
-                  key={`desc-${currentStep}`}
-                  animation="fadeInUp"
-                  duration={500}
-                  className="text-gray-300 text-center font-inter-light leading-6"
-                >
-                  {steps[currentStep].description}
-                </Animatable.Text>
-              </View>
-            </Card>
-          </Animated.View>
+          {/* Current Step Card */}
+          <StepCard
+            icon={steps[currentStep].icon}
+            title={steps[currentStep].title}
+            description={steps[currentStep].description}
+            isActive={true}
+          />
 
           {/* Step Indicators */}
-          <Animated.View 
-            entering={SlideInRight.delay(400)}
-            className="flex-row justify-center mb-8 space-x-3"
-          >
-            {steps.map((_, index) => (
-              <View
-                key={index}
-                className={`w-3 h-3 rounded-full ${
-                  index === currentStep 
-                    ? 'bg-primary-500' 
-                    : index < currentStep 
-                      ? 'bg-green-500' 
-                      : 'bg-gray-700'
-                }`}
-              />
-            ))}
-          </Animated.View>
-
-          {/* Progress Bar */}
-          <Animated.View 
-            entering={SlideInLeft.delay(500)}
-            className="mb-8"
-          >
-            <View className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-              <Animatable.View
-                animation={{
-                  0: { width: '0%' },
-                  1: { width: `${((currentStep + 1) / steps.length) * 100}%` },
-                }}
-                duration={500}
-                className="h-full bg-gradient-to-r from-primary-500 to-green-500 rounded-full"
-                transition="width"
-              />
-            </View>
-          </Animated.View>
+          <ProgressIndicator 
+            totalSteps={steps.length}
+            currentStep={currentStep}
+          />
 
           {/* Navigation Buttons */}
-          <View className="flex-1 justify-end pb-8">
-            <Animated.View entering={FadeInDown.delay(600)} className="space-y-4">
-              {/* Next/Skip Button */}
+          <View style={styles.buttonsContainer}>
+            {/* Next Button */}
+            <Button
+              title={currentStep === steps.length - 1 ? 'Continue' : 'Next'}
+              onPress={handleNext}
+              variant="filled"
+            />
+            
+            {/* Previous Button */}
+            {currentStep > 0 && (
               <Button
-                title={currentStep === steps.length - 1 ? t('onboarding.common.skip') : t('onboarding.common.next')}
-                onPress={handleNext}
-                variant="primary"
+                title="Previous"
+                onPress={handlePrevious}
+                variant="outline"
               />
-              
-              {/* Previous Button */}
-              {currentStep > 0 && (
-                <Button
-                  title={t('onboarding.common.previous')}
-                  onPress={handlePrevious}
-                  variant="outline"
-                />
-              )}
-              
-              {/* Skip All */}
-              <TouchableOpacity onPress={handleSkip}>
-                <Text className="text-gray-400 font-inter-light text-center">
-                  Skip tutorial
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
+            )}
+            
+            {/* Skip All */}
+            <Button
+              style={styles.skipButton}
+              title="Skip tutorial"
+              onPress={handleSkip}
+              variant="text"
+            />
           </View>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  scrollView: {
+    flexGrow: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  header: {
+    marginTop: 24,
+    marginBottom: 24,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+  },
+  title: {
+    color: '#ffffff',
+    fontSize: 32,
+    fontWeight: '700',
+    marginBottom: 12,
+    textAlign: 'left',
+    textShadowColor: '#d2981d',
+    textShadowOffset: { width: 0, height: 0.4 },
+    textShadowRadius: 12,
+  },
+  subtitle: {
+    color: '#D1D5DB',
+    fontSize: 18,
+    lineHeight: 26,
+    textAlign: 'left',
+    opacity: 0.9,
+  },
+  buttonsContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingBottom: 32,
+    gap: 12,
+  },
+  skipButton: {
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+});

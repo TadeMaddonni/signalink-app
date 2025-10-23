@@ -1,7 +1,8 @@
-import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Compass, Home, MessageCircle, User } from 'lucide-react-native';
+import React from 'react';
 import { Platform } from 'react-native';
 
 import { AuthProvider, useAuth } from '../../contexts/auth/AuthContext';
@@ -10,21 +11,24 @@ import '../../utils/i18n';
 // Screens
 import LoginScreen from '../../screens/auth/LoginScreen';
 import RegisterScreen from '../../screens/auth/RegisterScreen';
+
+// Onboarding screens
+import BenefitsScreen from '../../screens/onboarding/BenefitsScreen';
 import ConnectGloveScreen from '../../screens/onboarding/ConnectGloveScreen';
 import HowItWorksScreen from '../../screens/onboarding/HowItWorksScreen';
-import BenefitsScreen from '../../screens/onboarding/BenefitsScreen';
 
-// Mock screens for tabs (we'll create these next)
-import HomeScreen from '../../screens/home/HomeScreen';
+// Tab screens
 import ChatScreen from '../../screens/chat/ChatScreen';
 import ExploreScreen from '../../screens/explore/ExploreScreen';
+import HomeScreen from '../../screens/home/HomeScreen';
 import ProfileScreen from '../../screens/profile/ProfileScreen';
 
 // Navigation types
-import { RootStackParamList, AuthStackParamList, TabParamList } from '../../types';
+import { AuthStackParamList, OnboardingStackParamList, RootStackParamList, TabParamList } from '../../types';
 
 // Stack navigators
 const AuthStack = createStackNavigator<AuthStackParamList>();
+const OnboardingStack = createStackNavigator<OnboardingStackParamList>();
 const TabNavigator = createBottomTabNavigator<TabParamList>();
 const RootStack = createStackNavigator<RootStackParamList>();
 
@@ -36,7 +40,7 @@ function AuthStackNavigator() {
         headerShown: false,
         cardStyle: { backgroundColor: '#000000' },
         cardStyleInterpolator: Platform.OS === 'ios' 
-          ? ({ current }) => ({
+          ? ({ current }: any) => ({
             cardStyle: {
               opacity: current.progress,
             },
@@ -53,12 +57,12 @@ function AuthStackNavigator() {
 // Onboarding Stack
 function OnboardingStackNavigator() {
   return (
-    <RootStack.Navigator
+    <OnboardingStack.Navigator
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: '#000000' },
         cardStyleInterpolator: Platform.OS === 'ios' 
-          ? ({ current }) => ({
+          ? ({ current }: any) => ({
             cardStyle: {
               opacity: current.progress,
             },
@@ -66,10 +70,10 @@ function OnboardingStackNavigator() {
           : undefined,
       }}
     >
-      <RootStack.Screen name="ConnectGlove" component={ConnectGloveScreen} />
-      <RootStack.Screen name="HowItWorks" component={HowItWorksScreen} />
-      <RootStack.Screen name="Benefits" component={BenefitsScreen} />
-    </RootStack.Navigator>
+      <OnboardingStack.Screen name="ConnectGlove" component={ConnectGloveScreen} />
+      <OnboardingStack.Screen name="HowItWorks" component={HowItWorksScreen} />
+      <OnboardingStack.Screen name="Benefits" component={BenefitsScreen} />
+    </OnboardingStack.Navigator>
   );
 }
 
@@ -80,11 +84,24 @@ function TabNavigatorComponent() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#1a1a1a',
+          backgroundColor: 'rgba(26, 26, 26, 0.8)',
           borderTopWidth: 0,
-          height: Platform.OS === 'ios' ? 90 : 70,
-          paddingBottom: Platform.OS === 'ios' ? 30 : 15,
-          paddingTop: 10,
+          height: Platform.OS === 'ios' ? 80 : 60,
+          paddingBottom: Platform.OS === 'ios' ? 8 : 8,
+          paddingTop: 8,
+          marginHorizontal: 16,
+          marginBottom: Platform.OS === 'ios' ? 20 : 10,
+          borderRadius: 35,
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+          position: 'absolute',
+          backdropFilter: 'blur(20px)',
+          ...(Platform.OS === 'ios' && {
+            backgroundColor: 'rgba(26, 26, 26, 0.7)',
+          }),
         },
         tabBarActiveTintColor: '#f99f12',
         tabBarInactiveTintColor: '#64748b',
@@ -101,7 +118,7 @@ function TabNavigatorComponent() {
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24 }}>🏠</Text>
+            <Home size={24} color={color} />
           ),
         }}
       />
@@ -111,7 +128,7 @@ function TabNavigatorComponent() {
         options={{
           tabBarLabel: 'Chat',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24 }}>💬</Text>
+            <MessageCircle size={24} color={color} />
           ),
         }}
       />
@@ -121,7 +138,7 @@ function TabNavigatorComponent() {
         options={{
           tabBarLabel: 'Explore',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24 }}>🌟</Text>
+            <Compass size={24} color={color} />
           ),
         }}
       />
@@ -131,7 +148,7 @@ function TabNavigatorComponent() {
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24 }}>👤</Text>
+            <User size={24} color={color} />
           ),
         }}
       />
@@ -141,7 +158,7 @@ function TabNavigatorComponent() {
 
 // Main App Navigator
 function AppNavigator() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, hasCompletedOnboarding } = useAuth();
 
   return (
     <RootStack.Navigator
@@ -149,7 +166,7 @@ function AppNavigator() {
         headerShown: false,
         cardStyle: { backgroundColor: '#000000' },
         cardStyleInterpolator: Platform.OS === 'ios' 
-          ? ({ current }) => ({
+          ? ({ current }: any) => ({
             cardStyle: {
               opacity: current.progress,
             },
@@ -160,15 +177,12 @@ function AppNavigator() {
       {!isAuthenticated ? (
         // Not authenticated - show auth screens
         <RootStack.Screen name="Auth" component={AuthStackNavigator} />
-      ) : user ? (
-        // Authenticated - check if onboarding completed
-        <>
-          <RootStack.Screen name="Onboarding" component={ConnectGloveScreen} />
-          <RootStack.Screen name="MainTabs" component={TabNavigatorComponent} />
-        </>
+      ) : !hasCompletedOnboarding ? (
+        // Authenticated but hasn't completed onboarding
+        <RootStack.Screen name="Onboarding" component={OnboardingStackNavigator} />
       ) : (
-        // Default
-        <RootStack.Screen name="Auth" component={AuthStackNavigator} />
+        // Authenticated and completed onboarding - show main tabs
+        <RootStack.Screen name="MainTabs" component={TabNavigatorComponent} />
       )}
     </RootStack.Navigator>
   );
@@ -186,4 +200,4 @@ export function NavigationService() {
 }
 
 // Export types
-export { RootStackParamList, AuthStackParamList, TabParamList };
+export { AuthStackParamList, RootStackParamList, TabParamList };
