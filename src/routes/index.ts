@@ -1,29 +1,33 @@
 // Importar las rutas
 import { AUTH_ROUTES } from './auth.routes';
 import { USER_ROUTES } from './user.routes';
+import { GROUP_ROUTES } from './group.routes';
 
 // Exportar todas las rutas desde un punto central
 export { AUTH_ROUTES } from './auth.routes';
 export { USER_ROUTES } from './user.routes';
+export { GROUP_ROUTES } from './group.routes';
 
 // Exportar tipos
 export type { AuthRoute, AuthRouteKey } from './auth.routes';
 export type { UserRoute, UserRouteKey } from './user.routes';
+export type { GroupRoute, GroupRouteKey } from './group.routes';
 
 // Todas las rutas agrupadas
 export const API_ROUTES = {
   AUTH: AUTH_ROUTES,
   USER: USER_ROUTES,
+  GROUP: GROUP_ROUTES,
 } as const;
 
 // Helper para construir URLs con parámetros
 export const buildRouteWithParams = (route: string, params: Record<string, string | number>): string => {
   let finalRoute = route;
-  
+
   Object.entries(params).forEach(([key, value]) => {
     finalRoute = finalRoute.replace(`:${key}`, String(value));
   });
-  
+
   return finalRoute;
 };
 
