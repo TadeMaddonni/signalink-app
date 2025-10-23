@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { Button } from '../../components/ui/Button';
+import Button from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { useAuth } from '../../contexts/auth/AuthContext';
 import '../../utils/i18n';
@@ -117,7 +117,6 @@ export default function ProfileScreen() {
               title="Sign Out"
               onPress={handleLogout}
               variant="outline"
-              size="lg"
             />
           </Animated.View>
         </View>
