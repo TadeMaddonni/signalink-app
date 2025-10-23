@@ -4,12 +4,12 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { CheckCircle } from "lucide-react-native";
+import Button from "../../components/ui/Button";
 import { BluetoothService } from "../../services/bluetooth/BluetoothService";
 import "../../utils/i18n";
 
@@ -90,30 +90,23 @@ export default function ConnectGloveScreen({ navigation }: any) {
 
             {/* Bottom Section */}
             <View style={styles.buttonsContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.primaryButton,
-                  (isConnecting || isConnected) && styles.buttonDisabled,
-                ]}
+              <Button
+                title={isConnecting
+                  ? "Connecting..."
+                  : isConnected
+                  ? "Connected"
+                  : "Connect Glove"}
                 onPress={handleConnectGlove}
+                variant="filled"
                 disabled={isConnecting || isConnected}
-              >
-                <Text style={styles.primaryButtonText}>
-                  {isConnecting
-                    ? "Connecting..."
-                    : isConnected
-                    ? "Connected"
-                    : "Connect Glove"}
-                </Text>
-              </TouchableOpacity>
+              />
 
-              <TouchableOpacity
+              <Button
+                title="Skip for now"
                 onPress={handleSkipConnection}
-                style={styles.skipButton}
+                variant="text"
                 disabled={isConnecting}
-              >
-                <Text style={styles.skipButtonText}>Skip for now</Text>
-              </TouchableOpacity>
+              />
             </View>
           </View>
         </View>
@@ -186,12 +179,11 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   successCard: {
-    backgroundColor: "rgba(34, 197, 94, 0.1)",
     borderWidth: 1,
-    borderColor: "rgba(34, 197, 94, 0.3)",
     borderRadius: 12,
     padding: 16,
     marginTop: 24,
+    marginBottom: 16,
   },
   successContent: {
     flexDirection: 'row',
@@ -210,37 +202,5 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     paddingBottom: 32,
     gap: 16,
-  },
-  primaryButton: {
-    backgroundColor: "#ffffff",
-    borderRadius: 24,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    alignItems: "center",
-    shadowColor: "#f99f12",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.55,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  primaryButtonText: {
-    color: "#000000",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  skipButton: {
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  skipButtonText: {
-    color: "#9CA3AF",
-    fontSize: 16,
-    textAlign: "center",
-    textShadowColor: "#d2981d",
-    textShadowOffset: { width: 0, height: 0.4 },
-    textShadowRadius: 10,
   },
 });

@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { BookOpen, Circle, Settings, Volume2 } from 'lucide-react-native';
-import { BluetoothService } from '../../services/bluetooth/BluetoothService';
-import '../../utils/i18n';
+import {
+  Bluetooth,
+  BookOpen,
+  ChevronRight,
+  Circle,
+  Settings,
+  Volume2,
+} from "lucide-react-native";
+import { BluetoothService } from "../../services/bluetooth/BluetoothService";
+import "../../utils/i18n";
 
 export default function HomeScreen() {
   const [isConnected, setIsConnected] = useState(false);
@@ -20,128 +27,110 @@ export default function HomeScreen() {
 
   React.useEffect(() => {
     setIsConnected(bluetoothService.isConnected());
-    
+
     if (bluetoothService.isConnected()) {
       bluetoothService.startDataStream();
     }
   }, []);
 
   const handleConnectGlove = async () => {
-    await bluetoothService.connectToDevice('signalink-001');
+    await bluetoothService.connectToDevice("signalink-001");
     setIsConnected(bluetoothService.isConnected());
     setBatteryLevel(Math.floor(Math.random() * 40) + 60);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>
-              Welcome back!
-            </Text>
-            <Text style={styles.subtitle}>
-              Your Signalink is ready to communicate
-            </Text>
+            <Text style={styles.title}>Home</Text>
+            <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.headerButton}>
+                <Settings size={20} color="#ffffff" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.headerButton}>
+                <Text style={styles.plusButton}>+</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Connection Status */}
-          <View style={[
-            styles.statusCard,
-            isConnected ? styles.statusCardConnected : styles.statusCardDisconnected
-          ]}>
-            <View style={styles.statusContent}>
-              <View>
-                <Text style={styles.statusTitle}>
-                  Signalink Glove
-                </Text>
-                <Text style={[
-                  styles.statusText,
-                  isConnected ? styles.statusTextConnected : styles.statusTextDisconnected
-                ]}>
-                  {isConnected ? 'Connected' : 'Disconnected'}
-                </Text>
-              </View>
-              <View style={styles.statusRight}>
-                <Circle 
-                  size={16} 
-                  color={isConnected ? '#22C55E' : '#EF4444'} 
-                  fill={isConnected ? '#22C55E' : '#EF4444'}
-                />
-                {isConnected && (
-                  <Text style={styles.batteryText}>
-                    Battery: {batteryLevel}%
+          {/* Grid Cards */}
+          <View style={styles.gridContainer}>
+            {/* Glove Status - Full Width */}
+            <TouchableOpacity style={styles.fullWidthCard}>
+              <View style={styles.cardContent}>
+                <View style={styles.cardIconContainer}>
+                  <Circle
+                    size={20}
+                    color={isConnected ? "#22C55E" : "#EF4444"}
+                    fill={isConnected ? "#22C55E" : "#EF4444"}
+                  />
+                </View>
+                <View style={styles.cardTextContainer}>
+                  <Text style={styles.cardTitle}>Glove Status</Text>
+                  <Text style={styles.cardSubtitle}>
+                    {isConnected ? "Connected" : "Disconnected"}
                   </Text>
-                )}
+                </View>
+                <ChevronRight size={16} color="#6B7280" />
               </View>
+            </TouchableOpacity>
+
+            {/* First Row - Two Column Cards */}
+            <View style={styles.row}>
+              {/* Voice Translation Mode */}
+              <TouchableOpacity style={styles.halfWidthCard}>
+                <View style={styles.halfCardContent}>
+                  <View style={styles.halfCardIconContainer}>
+                    <Volume2 size={24} color="#f99f12" />
+                  </View>
+                  <View style={styles.halfCardTextContainer}>
+                    <Text style={styles.halfCardTitle}>Voice Mode</Text>
+                    <Text style={styles.halfCardSubtitle}>Active</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+
+              {/* Signs Library */}
+              <TouchableOpacity style={styles.halfWidthCard}>
+                <View style={styles.halfCardContent}>
+                  <View style={styles.halfCardIconContainer}>
+                    <BookOpen size={24} color="#f99f12" />
+                  </View>
+                  <View style={styles.halfCardTextContainer}>
+                    <Text style={styles.halfCardTitle}>Signs Library</Text>
+                    <Text style={styles.halfCardSubtitle}>Learn gestures</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
             </View>
+
+            {/* Custom Calibration - Full Width */}
+            <TouchableOpacity style={styles.fullWidthCard}>
+              <View style={styles.cardContent}>
+                <View style={styles.cardIconContainer}>
+                  <Bluetooth size={20} color="#f99f12" />
+                </View>
+                <View style={styles.cardTextContainer}>
+                  <Text style={styles.cardTitle}>Custom Calibration</Text>
+                  <Text style={styles.cardSubtitle}>Calibrate your glove</Text>
+                </View>
+                <ChevronRight size={16} color="#6B7280" />
+              </View>
+            </TouchableOpacity>
+
+            {/* Add New Card - Full Width */}
+            {/* <TouchableOpacity style={[styles.fullWidthCard, styles.addCard]}>
+              <View style={styles.addCardContent}>
+                <Text style={styles.addCardIcon}>+</Text>
+              </View>
+            </TouchableOpacity> */}
           </View>
-
-          {/* Quick Actions */}
-          <View style={styles.actionsSection}>
-            <Text style={styles.sectionTitle}>
-              Quick Actions
-            </Text>
-            
-            <View style={styles.actionsList}>
-              <TouchableOpacity style={styles.actionCard}>
-                <View style={styles.actionContent}>
-                  <Volume2 size={24} color="#f99f12" />
-                  <View style={styles.actionTextContainer}>
-                    <Text style={styles.actionTitle}>
-                      Voice Translation Mode
-                    </Text>
-                    <Text style={styles.actionDescription}>
-                      Start translating your signs instantly
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.actionCard}>
-                <View style={styles.actionContent}>
-                  <BookOpen size={24} color="#f99f12" />
-                  <View style={styles.actionTextContainer}>
-                    <Text style={styles.actionTitle}>
-                      Learn Signs
-                    </Text>
-                    <Text style={styles.actionDescription}>
-                      Practice new sign language gestures
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.actionCard}>
-                <View style={styles.actionContent}>
-                  <Settings size={24} color="#f99f12" />
-                  <View style={styles.actionTextContainer}>
-                    <Text style={styles.actionTitle}>
-                      Settings
-                    </Text>
-                    <Text style={styles.actionDescription}>
-                      Configure glove preferences
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Connect Button */}
-          {!isConnected && (
-            <View style={styles.connectButtonContainer}>
-              <TouchableOpacity
-                style={styles.connectButton}
-                onPress={handleConnectGlove}
-              >
-                <Text style={styles.connectButtonText}>
-                  Connect Signalink Glove
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -151,130 +140,139 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
+  },
+  scrollContent: {
+    paddingBottom: 100, // Space for floating tab bar
   },
   content: {
     paddingHorizontal: 24,
     paddingTop: 24,
   },
   header: {
-    marginBottom: 24,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 32,
   },
   title: {
-    color: '#ffffff',
-    fontSize: 24,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: '#9CA3AF',
-    fontSize: 16,
-  },
-  statusCard: {
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    marginBottom: 24,
-  },
-  statusCardConnected: {
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    borderColor: 'rgba(34, 197, 94, 0.3)',
-  },
-  statusCardDisconnected: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-  },
-  statusContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  statusTitle: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  statusText: {
-    fontSize: 14,
-  },
-  statusTextConnected: {
-    color: '#86EFAC',
-  },
-  statusTextDisconnected: {
-    color: '#FCA5A5',
-  },
-  statusRight: {
-    alignItems: 'flex-end',
-  },
-  statusIcon: {
+    color: "#ffffff",
     fontSize: 32,
-    marginBottom: 8,
+    fontWeight: "700",
   },
-  batteryText: {
-    color: '#9CA3AF',
-    fontSize: 12,
+  headerActions: {
+    flexDirection: "row",
+    gap: 12,
   },
-  actionsSection: {
-    marginBottom: 24,
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  sectionTitle: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
+  plusButton: {
+    color: "#ffffff",
+    fontSize: 20,
+    fontWeight: "300",
   },
-  actionsList: {
+  gridContainer: {
     gap: 16,
   },
-  actionCard: {
-    backgroundColor: '#1F2937',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#374151',
-    marginBottom: 16,
+  row: {
+    flexDirection: "row",
+    gap: 16,
   },
-  actionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  card: {
+    backgroundColor: "#111111",
+    borderRadius: 16,
+    padding: 20,
+    minHeight: 100,
   },
-  actionIcon: {
-    fontSize: 32,
-    marginRight: 16,
+  halfWidthCard: {
+    flex: 1,
+    backgroundColor: "#111111",
+    borderRadius: 16,
+    padding: 20,
+    minHeight: 100,
   },
-  actionTextContainer: {
+  fullWidthCard: {
+    width: "100%",
+    backgroundColor: "#111111",
+    borderRadius: 16,
+    padding: 20,
+    minHeight: 120,
+  },
+  cardContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     flex: 1,
   },
-  actionTitle: {
-    color: '#ffffff',
+  cardIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(249, 159, 18, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 16,
+  },
+  cardTextContainer: {
+    flex: 1,
+  },
+  cardTitle: {
+    color: "#ffffff",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 4,
   },
-  actionDescription: {
-    color: '#D1D5DB',
+  cardSubtitle: {
+    color: "#9CA3AF",
     fontSize: 14,
   },
-  connectButtonContainer: {
-    marginTop: 32,
-    marginBottom: 24,
+  halfCardContent: {
+    flex: 1,
+    position: "relative",
   },
-  connectButton: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    shadowColor: '#f99f12',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.55,
-    shadowRadius: 12,
-    elevation: 5,
+  halfCardIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(249, 159, 18, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
   },
-  connectButtonText: {
-    color: '#000000',
-    fontSize: 18,
-    fontWeight: '600',
+  halfCardTextContainer: {
+    flex: 1,
+  },
+  halfCardTitle: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  halfCardSubtitle: {
+    color: "#9CA3AF",
+    fontSize: 12,
+  },
+  addCard: {
+    backgroundColor: "rgba(31, 41, 55, 0.5)",
+    borderWidth: 1,
+    borderColor: "rgba(75, 85, 99, 0.3)",
+    borderStyle: "dashed",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addCardContent: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addCardIcon: {
+    color: "#6B7280",
+    fontSize: 32,
+    fontWeight: "300",
   },
 });

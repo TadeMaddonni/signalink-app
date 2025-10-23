@@ -1,14 +1,17 @@
 import { Hand, Mic, Smartphone } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import Button from '../../components/ui/Button';
+import ProgressBar from '../../components/ui/ProgressBar';
+import ProgressIndicator from '../../components/ui/ProgressIndicator';
+import StepCard from '../../components/ui/StepCard';
 import '../../utils/i18n';
 
 export default function HowItWorksScreen({ navigation }: any) {
@@ -52,6 +55,9 @@ export default function HowItWorksScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Progress Bar - Fixed at top */}
+      <ProgressBar progress={(currentStep + 1) / steps.length} />
+      
       <ScrollView 
         contentContainerStyle={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -67,82 +73,45 @@ export default function HowItWorksScreen({ navigation }: any) {
             </Text>
           </View>
 
-          {/* Current Step Highlight */}
-          <View style={styles.stepCard}>
-            <View style={styles.stepContent}>
-              <View style={styles.stepIconContainer}>
-                {React.createElement(steps[currentStep].icon, { 
-                  size: 48, 
-                  color: '#f99f12' 
-                })}
-              </View>
-              
-              <Text style={styles.stepTitle}>
-                {steps[currentStep].title}
-              </Text>
-              
-              <Text style={styles.stepDescription}>
-                {steps[currentStep].description}
-              </Text>
-            </View>
-          </View>
+          {/* Current Step Card */}
+          <StepCard
+            icon={steps[currentStep].icon}
+            title={steps[currentStep].title}
+            description={steps[currentStep].description}
+            isActive={true}
+          />
 
           {/* Step Indicators */}
-          <View style={styles.indicators}>
-            {steps.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.indicator,
-                  index === currentStep && styles.indicatorActive,
-                  index < currentStep && styles.indicatorCompleted,
-                ]}
-              />
-            ))}
-          </View>
-
-          {/* Progress Bar */}
-          <View style={styles.progressBarContainer}>
-            <View style={styles.progressBarBackground}>
-              <View 
-                style={[
-                  styles.progressBarFill,
-                  { width: `${((currentStep + 1) / steps.length) * 100}%` }
-                ]}
-              />
-            </View>
-          </View>
+          <ProgressIndicator 
+            totalSteps={steps.length}
+            currentStep={currentStep}
+          />
 
           {/* Navigation Buttons */}
           <View style={styles.buttonsContainer}>
             {/* Next Button */}
-            <TouchableOpacity
-              style={styles.primaryButton}
+            <Button
+              title={currentStep === steps.length - 1 ? 'Continue' : 'Next'}
               onPress={handleNext}
-            >
-              <Text style={styles.primaryButtonText}>
-                {currentStep === steps.length - 1 ? 'Continue' : 'Next'}
-              </Text>
-            </TouchableOpacity>
+              variant="filled"
+            />
             
             {/* Previous Button */}
             {currentStep > 0 && (
-              <TouchableOpacity
-                style={styles.secondaryButton}
+              <Button
+                title="Previous"
                 onPress={handlePrevious}
-              >
-                <Text style={styles.secondaryButtonText}>
-                  Previous
-                </Text>
-              </TouchableOpacity>
+                variant="outline"
+              />
             )}
             
             {/* Skip All */}
-            <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
-              <Text style={styles.skipButtonText}>
-                Skip tutorial
-              </Text>
-            </TouchableOpacity>
+            <Button
+              style={styles.skipButton}
+              title="Skip tutorial"
+              onPress={handleSkip}
+              variant="text"
+            />
           </View>
         </View>
       </ScrollView>
@@ -163,129 +132,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   header: {
-    marginTop: 32,
-    marginBottom: 48,
+    marginTop: 24,
+    marginBottom: 24,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
   },
   title: {
     color: '#ffffff',
     fontSize: 32,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontWeight: '700',
+    marginBottom: 12,
+    textAlign: 'left',
     textShadowColor: '#d2981d',
     textShadowOffset: { width: 0, height: 0.4 },
-    textShadowRadius: 10,
+    textShadowRadius: 12,
   },
   subtitle: {
     color: '#D1D5DB',
     fontSize: 18,
-    lineHeight: 24,
-  },
-  stepCard: {
-    backgroundColor: 'rgba(249, 159, 18, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(249, 159, 18, 0.3)',
-    borderRadius: 16,
-    padding: 32,
-    marginBottom: 32,
-  },
-  stepContent: {
-    alignItems: 'center',
-  },
-  stepIconContainer: {
-    marginBottom: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stepTitle: {
-    color: '#ffffff',
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  stepDescription: {
-    color: '#D1D5DB',
-    fontSize: 16,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  indicators: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 32,
-    gap: 12,
-  },
-  indicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#374151',
-  },
-  indicatorActive: {
-    backgroundColor: '#f99f12',
-  },
-  indicatorCompleted: {
-    backgroundColor: '#22C55E',
-  },
-  progressBarContainer: {
-    marginBottom: 32,
-  },
-  progressBarBackground: {
-    width: '100%',
-    height: 8,
-    backgroundColor: '#1F2937',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#f99f12',
-    borderRadius: 4,
+    lineHeight: 26,
+    textAlign: 'left',
+    opacity: 0.9,
   },
   buttonsContainer: {
     flex: 1,
     justifyContent: 'flex-end',
     paddingBottom: 32,
-    gap: 16,
-  },
-  primaryButton: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    shadowColor: '#f99f12',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.55,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  primaryButtonText: {
-    color: '#000000',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#ffffff',
-    borderRadius: 24,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '600',
+    gap: 12,
   },
   skipButton: {
-    paddingVertical: 12,
+    paddingVertical: 8,
     alignItems: 'center',
-  },
-  skipButtonText: {
-    color: '#9CA3AF',
-    fontSize: 16,
-    textAlign: 'center',
   },
 });
