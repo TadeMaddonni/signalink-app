@@ -21,7 +21,6 @@ export default function LoginScreen({ navigation }: any) {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<any>({});
 
-
   const handleLogin = async () => {
     // Simple validation
     const newErrors: any = {};

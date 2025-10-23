@@ -45,7 +45,6 @@ export interface ApiResponse<T = any> {
 export interface LoginSuccessResponse {
   success: true;
   message: string;
-  token: string;
   user: {
     id: number;
     name: string;
@@ -122,6 +121,7 @@ export type RootStackParamList = {
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
+  ProfileSetup: undefined;
 };
 
 export type OnboardingStackParamList = {
