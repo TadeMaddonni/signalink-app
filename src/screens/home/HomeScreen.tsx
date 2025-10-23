@@ -13,7 +13,9 @@ import {
   BookOpen,
   ChevronRight,
   Circle,
+  MessageSquare,
   Settings,
+  Users,
   Volume2,
 } from "lucide-react-native";
 import { BluetoothService } from "../../services/bluetooth/BluetoothService";
@@ -53,9 +55,7 @@ export default function HomeScreen() {
               <TouchableOpacity style={styles.headerButton}>
                 <Settings size={20} color="#ffffff" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.headerButton}>
-                <Text style={styles.plusButton}>+</Text>
-              </TouchableOpacity>
+
             </View>
           </View>
 
@@ -105,6 +105,35 @@ export default function HomeScreen() {
                   <View style={styles.halfCardTextContainer}>
                     <Text style={styles.halfCardTitle}>Signs Library</Text>
                     <Text style={styles.halfCardSubtitle}>Learn gestures</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {/* Second Row - Two Column Cards */}
+            <View style={styles.row}>
+              {/* Groups */}
+              <TouchableOpacity style={styles.halfWidthCard}>
+                <View style={styles.halfCardContent}>
+                  <View style={styles.halfCardIconContainer}>
+                    <Users size={24} color="#f99f12" />
+                  </View>
+                  <View style={styles.halfCardTextContainer}>
+                    <Text style={styles.halfCardTitle}>Groups</Text>
+                    <Text style={styles.halfCardSubtitle}>Chat on groupss</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+
+              {/* Receptor Buddy */}
+              <TouchableOpacity style={styles.halfWidthCard}>
+                <View style={styles.halfCardContent}>
+                  <View style={styles.halfCardIconContainer}>
+                    <MessageSquare size={24} color="#f99f12" />
+                  </View>
+                  <View style={styles.halfCardTextContainer}>
+                    <Text style={styles.halfCardTitle}>Buddy</Text>
+                    <Text style={styles.halfCardSubtitle}>Find near people</Text>
                   </View>
                 </View>
               </TouchableOpacity>

@@ -20,6 +20,7 @@ export default function LoginScreen({ navigation }: any) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<any>({});
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   const handleLogin = async () => {
     // Simple validation
@@ -61,15 +62,18 @@ export default function LoginScreen({ navigation }: any) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>
+              Welcome Back
+            </Text>
+            <Text style={styles.subtitle}>
+              Sign in to continue with Signalink
+            </Text>
+          </View>
+
+          {/* Form */}
           <View style={styles.form}>
-            <View>
-              <Text style={styles.title}>
-                Welcome Back
-              </Text>
-              <Text style={styles.subtitle}>
-                Sign in to continue with Signalink
-              </Text>
-            </View>
 
             {error && (
               <View style={styles.errorContainer}>
@@ -79,29 +83,41 @@ export default function LoginScreen({ navigation }: any) {
               </View>
             )}
 
-            <View>
-              <View style={styles.inputContainer}>
+            <View style={styles.inputContainer}>
+              <View style={styles.inputParent}>
                 <Text style={styles.inputLabel}>Username</Text>
                 <TextInput
-                  style={[styles.input, errors.username && styles.inputError]}
+                  style={[
+                    styles.input, 
+                    errors.username && styles.inputError,
+                    focusedInput === 'username' && styles.inputFocused
+                  ]}
                   value={username}
                   onChangeText={setUsername}
                   placeholder="Enter your username"
                   placeholderTextColor="#9CA3AF"
                   keyboardType="default"
+                  onFocus={() => setFocusedInput('username')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
               </View>
 
-              <View style={styles.inputContainer}>
+              <View style={styles.inputParent}>
                 <Text style={styles.inputLabel}>Password</Text>
                 <TextInput
-                  style={[styles.input, errors.password && styles.inputError]}
+                  style={[
+                    styles.input, 
+                    errors.password && styles.inputError,
+                    focusedInput === 'password' && styles.inputFocused
+                  ]}
                   value={password}
                   onChangeText={setPassword}
                   placeholder="Enter your password"
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={true}
+                  onFocus={() => setFocusedInput('password')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
               </View>
@@ -161,7 +177,13 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+  },
+  header: {
+    marginTop: 24,
+    marginBottom: 32,
+    paddingHorizontal: 24,
+    alignItems: "flex-start",
   },
   form: {
     paddingHorizontal: 24,
@@ -169,13 +191,19 @@ const styles = StyleSheet.create({
   title: {
     color: '#ffffff',
     fontSize: 32,
-    fontWeight: '600',
-    marginBottom: 8,
+    fontWeight: '700',
+    marginBottom: 12,
+    textAlign: 'left',
+    textShadowColor: '#d2981d',
+    textShadowOffset: { width: 0, height: 0.4 },
+    textShadowRadius: 12,
   },
   subtitle: {
-    color: '#9CA3AF',
-    fontSize: 16,
-    marginBottom: 32,
+    color: '#D1D5DB',
+    fontSize: 18,
+    lineHeight: 26,
+    textAlign: 'left',
+    opacity: 0.9,
   },
   errorContainer: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -191,22 +219,44 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   inputContainer: {
-    marginBottom: 16,
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 32,
+  },
+  inputParent: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 8,
   },
   inputLabel: {
     color: '#ffffff',
     fontSize: 16,
+    fontWeight: '600',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#374151',
+    backgroundColor: '#111111',
     borderWidth: 1,
-    borderColor: '#4B5563',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderColor: '#111111',
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    width: '100%',
     color: '#ffffff',
     fontSize: 16,
+    minHeight: 56,
+  },
+  inputFocused: {
+    borderColor: '#f99f12',
+    shadowColor: '#f99f12',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   inputError: {
     borderColor: '#EF4444',
@@ -222,7 +272,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 48,
     shadowColor: '#f99f12',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.55,
