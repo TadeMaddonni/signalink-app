@@ -1,9 +1,10 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Compass, Home, MessageCircle, User } from 'lucide-react-native';
+import { Compass, Home, MessageCircle, User, Users } from 'lucide-react-native';
 import React from 'react';
 import { Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { AuthProvider, useAuth } from '../../contexts/auth/AuthContext';
 import '../../utils/i18n';
@@ -20,15 +21,19 @@ import HowItWorksScreen from '../../screens/onboarding/HowItWorksScreen';
 // Tab screens
 import ChatScreen from '../../screens/chat/ChatScreen';
 import ExploreScreen from '../../screens/explore/ExploreScreen';
+import GroupsScreen from '../../screens/group/GroupsScreen';
+import GroupDetailScreen from '../../screens/group/GroupDetailScreen';
+import EditGroupScreen from '../../screens/group/EditGroupScreen';
 import HomeScreen from '../../screens/home/HomeScreen';
 import ProfileScreen from '../../screens/profile/ProfileScreen';
 
 // Navigation types
-import { AuthStackParamList, OnboardingStackParamList, RootStackParamList, TabParamList } from '../../types';
+import { AuthStackParamList, OnboardingStackParamList, RootStackParamList, TabParamList, GroupsStackParamList } from '../../types';
 
 // Stack navigators
 const AuthStack = createStackNavigator<AuthStackParamList>();
 const OnboardingStack = createStackNavigator<OnboardingStackParamList>();
+const GroupsStack = createStackNavigator<GroupsStackParamList>();
 const TabNavigator = createBottomTabNavigator<TabParamList>();
 const RootStack = createStackNavigator<RootStackParamList>();
 
@@ -51,6 +56,29 @@ function AuthStackNavigator() {
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Register" component={RegisterScreen} />
     </AuthStack.Navigator>
+  );
+}
+
+// Groups Stack Navigator
+function GroupsStackNavigator() {
+  return (
+    <GroupsStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: '#000000' },
+        cardStyleInterpolator: Platform.OS === 'ios'
+          ? ({ current }: any) => ({
+            cardStyle: {
+              opacity: current.progress,
+            },
+          })
+          : undefined,
+      }}
+    >
+      <GroupsStack.Screen name="GroupsList" component={GroupsScreen} />
+      <GroupsStack.Screen name="GroupDetail" component={GroupDetailScreen} />
+      <GroupsStack.Screen name="EditGroup" component={EditGroupScreen} />
+    </GroupsStack.Navigator>
   );
 }
 
@@ -79,6 +107,7 @@ function OnboardingStackNavigator() {
 
 // Bottom Tab Navigator for main app
 function TabNavigatorComponent() {
+  const { t } = useTranslation();
   return (
     <TabNavigator.Navigator
       screenOptions={{
@@ -129,6 +158,16 @@ function TabNavigatorComponent() {
           tabBarLabel: 'Chat',
           tabBarIcon: ({ color }) => (
             <MessageCircle size={24} color={color} />
+          ),
+        }}
+      />
+      <TabNavigator.Screen
+        name="Groups"
+        component={GroupsStackNavigator}
+        options={{
+          tabBarLabel: t('groups.tabLabel'),
+          tabBarIcon: ({ color }) => (
+            <Users size={24} color={color} />
           ),
         }}
       />

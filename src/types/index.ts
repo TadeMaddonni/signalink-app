@@ -134,6 +134,7 @@ export type TabParamList = {
   Home: undefined;
   Chat: undefined;
   Explore: undefined;
+  Groups: undefined;
   Profile: undefined;
 };
 
@@ -200,3 +201,37 @@ export interface TranslationService {
   translate: (text: string, targetLanguage: string) => Promise<TranslationResult>;
   detectLanguage: (text: string) => Promise<string>;
 }
+
+// Group Types
+export interface Group {
+  id: number;
+  name: string;
+  owner_id: number;
+  owner_username: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Member {
+  id: number;
+  name: string;
+  surname: string;
+  username: string;
+  email: string;
+  profile_image?: string;
+}
+
+// Groups Navigation Types
+export type GroupsStackParamList = {
+  GroupsList: undefined;
+  GroupDetail: {
+    groupId: number;
+    groupName: string;
+    ownerUsername: string;
+  };
+  EditGroup: {
+    groupId: number;
+    groupName: string;
+    ownerUsername: string;
+  };
+};
