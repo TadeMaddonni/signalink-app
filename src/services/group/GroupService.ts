@@ -1,6 +1,6 @@
+import { buildRouteWithParams } from '../../routes';
 import { Group, Member } from '../../types';
 import { API_CONFIG, DEFAULT_HEADERS, buildFullUrl } from '../api/config';
-import { buildRouteWithParams } from '../../routes';
 
 class GroupService {
   private static instance: GroupService;

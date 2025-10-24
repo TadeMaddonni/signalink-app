@@ -1,20 +1,23 @@
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { ArrowLeft, Mic, Send, Square } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { ArrowLeft, Send } from 'lucide-react-native';
-import { useTranslation } from 'react-i18next';
+import { useAudioTranscription } from '../../hooks/useAudioTranscription';
 import { GroupsStackParamList } from '../../types';
 import '../../utils/i18n';
 
@@ -29,6 +32,31 @@ export default function GroupDetailScreen() {
 
   const [messageText, setMessageText] = useState('');
 
+  // Hook de transcripción de audio
+  const audioTranscription = useAudioTranscription({
+    transmitterId: 1, // TODO: Obtener del contexto de auth
+    receiverId: 2,    // TODO: Obtener del contexto de auth o props
+    onTranscriptionStart: () => {
+      console.log('🎙️ Transcription started');
+    },
+    onTranscriptionComplete: (text: string) => {
+      console.log('✅ Transcription completed:', text);
+      alert('Audio transcrito correctamente!');
+      
+      // Auto-limpiar después de 10 segundos
+      setTimeout(() => {
+        audioTranscription.clearTranscription();
+      }, 10000);
+    },
+    onTranscriptionError: (error: string) => {
+      console.error('❌ Transcription error:', error);
+      alert(`Error en la transcripción: ${error}`);
+    },
+    onConnectionStatusChange: (connected: boolean) => {
+      console.log('🔌 Audio connection status:', connected ? 'Connected' : 'Disconnected');
+    },
+  });
+
   const handleBack = () => {
     navigation.goBack();
   };
@@ -39,9 +67,17 @@ export default function GroupDetailScreen() {
     setMessageText('');
   };
 
-  const handleRecordSigns = () => {
-    // TODO: Implementar grabación de señas
-    console.log('Record signs');
+  const handleRecordSigns = async () => {
+    // Usar el hook de transcripción
+    await audioTranscription.toggleRecording();
+  };
+
+
+
+
+
+  const handleDismissKeyboard = () => {
+    Keyboard.dismiss();
   };
 
   const handleGroupInfoPress = () => {
@@ -59,7 +95,9 @@ export default function GroupDetailScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        {/* Header */}
+        <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
+          <View style={styles.innerContent}>
+            {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
             <ArrowLeft size={24} color="#ffffff" />
@@ -79,6 +117,14 @@ export default function GroupDetailScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* WebSocket Status Indicator */}
+        <View style={styles.socketStatus}>
+          <View style={[styles.socketIndicator, { backgroundColor: audioTranscription.isSocketConnected ? '#10B981' : '#EF4444' }]} />
+          <Text style={styles.socketStatusText}>
+            {audioTranscription.isSocketConnected ? 'Audio conectado' : 'Audio desconectado'}
+          </Text>
+        </View>
+
         {/* Body - Messages Area */}
         <ScrollView
           style={styles.messagesContainer}
@@ -94,15 +140,40 @@ export default function GroupDetailScreen() {
           </View>
         </ScrollView>
 
+        {/* Transcribed Text Preview */}
+        {audioTranscription.transcribedText ? (
+          <View style={styles.transcribedTextContainer}>
+            <Text style={styles.transcribedTextLabel}>Texto transcrito:</Text>
+            <Text style={styles.transcribedText}>{audioTranscription.transcribedText}</Text>
+          </View>
+        ) : null}
+
         {/* Footer - Input Area */}
         <View style={styles.footer}>
           {/* Record Signs Button */}
           <TouchableOpacity
-            style={styles.recordButton}
+            style={[
+              styles.recordButton, 
+              audioTranscription.isRecording && styles.recordButtonActive,
+              !audioTranscription.canRecord && styles.recordButtonDisabled
+            ]}
             onPress={handleRecordSigns}
+            disabled={!audioTranscription.canRecord}
           >
+            {audioTranscription.isRecording ? (
+              <Square size={20} color="#ffffff" />
+            ) : audioTranscription.isProcessing ? (
+              <Text style={{ color: '#ffffff', fontSize: 16 }}>⏳</Text>
+            ) : (
+              <Mic size={20} color="#ffffff" />
+            )}
             <Text style={styles.recordButtonText}>
-              {t('groups.recordSigns')}
+              {audioTranscription.isRecording 
+                ? 'Detener' 
+                : audioTranscription.isProcessing 
+                  ? 'Procesando...' 
+                  : t('groups.recordSigns')
+              }
             </Text>
           </TouchableOpacity>
 
@@ -129,6 +200,8 @@ export default function GroupDetailScreen() {
             </TouchableOpacity>
           </View>
         </View>
+          </View>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -140,6 +213,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   keyboardView: {
+    flex: 1,
+  },
+  innerContent: {
     flex: 1,
   },
   header: {
@@ -189,6 +265,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
+    // Sin padding inferior ya que el menú está oculto en esta pantalla
   },
   emptyMessagesContainer: {
     alignItems: 'center',
@@ -221,6 +298,15 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     justifyContent: 'center',
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  recordButtonActive: {
+    backgroundColor: '#EF4444', // Rojo cuando está grabando
+  },
+  recordButtonDisabled: {
+    backgroundColor: '#6B7280', // Gris cuando está deshabilitado
+    opacity: 0.6,
   },
   recordButtonText: {
     color: '#000000',
@@ -247,5 +333,43 @@ const styles = StyleSheet.create({
     padding: 8,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  transcribedTextContainer: {
+    backgroundColor: '#1F2937',
+    padding: 16,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FFC452',
+  },
+  transcribedTextLabel: {
+    color: '#FFC452',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  transcribedText: {
+    color: '#ffffff',
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  socketStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#1F2937',
+    gap: 8,
+  },
+  socketIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  socketStatusText: {
+    color: '#9CA3AF',
+    fontSize: 12,
+    fontWeight: '500',
   },
 });

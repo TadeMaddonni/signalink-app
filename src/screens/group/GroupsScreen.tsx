@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  ActivityIndicator,
-  TouchableOpacity,
-  Modal,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Plus, X } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+  ActivityIndicator,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import GroupCard from '../../components/ui/GroupCard';
 import GroupService from '../../services/group/GroupService';
 import { Group, GroupsStackParamList } from '../../types';
@@ -64,6 +66,10 @@ export default function GroupsScreen() {
     setGroupName('');
   };
 
+  const handleDismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
       Alert.alert(t('common.error'), t('groups.enterGroupName'));
@@ -96,8 +102,13 @@ export default function GroupsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.innerContent}>
+          <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
@@ -210,10 +221,12 @@ export default function GroupsScreen() {
                 </Text>
               )}
             </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
-    </SafeAreaView>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
+        </View>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -221,6 +234,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
+  },
+  innerContent: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 100, // Espacio para la barra de navegación inferior
   },
   content: {
     paddingHorizontal: 24,
@@ -282,7 +301,7 @@ const styles = StyleSheet.create({
   // Floating Action Button
   fab: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 100, // Aumentado para evitar superposición con el menú inferior
     right: 24,
     width: 64,
     height: 64,
