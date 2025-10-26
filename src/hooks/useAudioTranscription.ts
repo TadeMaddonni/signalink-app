@@ -32,48 +32,80 @@ export const useAudioTranscription = (config: AudioTranscriptionConfig) => {
     error: null,
   });
 
-  // Referencias
+  // Referencias para evitar re-inicializaciones
   const recordingRef = useRef<Audio.Recording | null>(null);
   const audioSocketRef = useRef<AudioSocketService | null>(null);
+  const isInitializedRef = useRef<boolean>(false);
+  const isMountedRef = useRef<boolean>(true);
+  
+  // Guardar config en ref para evitar que cambie la referencia y re-ejecute efectos
+  const configRef = useRef<AudioTranscriptionConfig>(config);
+  useEffect(() => { 
+    configRef.current = config; 
+  }, [config]);
 
   // Actualizar estado de forma segura
   const updateState = useCallback((updates: Partial<AudioTranscriptionState>) => {
+    if (!isMountedRef.current) return;
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
   // Inicializar servicio de audio
+  // Inicialización del servicio — corremos solo una vez al montar
   const initializeAudioService = useCallback(async () => {
+    // Evitar múltiples inicializaciones
+    if (isInitializedRef.current || !isMountedRef.current) {
+      console.log('🔄 Audio service already initialized or component unmounted');
+      return true;
+    }
+
     try {
       console.log('🎤 Initializing audio transcription service...');
-      
+      isInitializedRef.current = true;
+
       // Configurar permisos de audio
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
 
-      // Conectar al WebSocket de audio
-      audioSocketRef.current = AudioSocketService.getInstance();
-      const connected = await audioSocketRef.current.connect();
-      
-      updateState({ isSocketConnected: connected, error: connected ? null : 'Failed to connect to audio service' });
-      config.onConnectionStatusChange?.(connected);
+      // Intentar conectar al WebSocket de audio (no bloqueante)
+      try {
+        audioSocketRef.current = AudioSocketService.getInstance();
+        const connected = await audioSocketRef.current.connect();
 
-      if (connected) {
-        console.log('✅ Audio transcription service initialized successfully');
-      } else {
-        console.error('❌ Failed to initialize audio transcription service');
+        setState(prev => ({ ...prev, isSocketConnected: connected }));
+        configRef.current.onConnectionStatusChange?.(connected);
+
+        if (connected) {
+          console.log('✅ Audio WebSocket connected successfully');
+        } else {
+          console.warn('⚠️ Audio WebSocket not available - working in offline mode');
+          setState(prev => ({ 
+            ...prev, 
+            error: 'Servidor de transcripción no disponible. Grabación funcional pero sin transcripción automática.' 
+          }));
+        }
+      } catch (socketError) {
+        console.warn('⚠️ WebSocket connection failed - continuing in offline mode:', socketError);
+        setState(prev => ({ 
+          ...prev,
+          isSocketConnected: false,
+          error: 'Modo offline: La grabación funciona pero la transcripción automática no está disponible.'
+        }));
+        configRef.current.onConnectionStatusChange?.(false);
       }
 
-      return connected;
+      console.log('✅ Audio service initialized (recording available)');
+      return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error during initialization';
       console.error('💥 Audio service initialization error:', errorMessage);
-      updateState({ error: errorMessage, isSocketConnected: false });
-      config.onTranscriptionError?.(errorMessage);
+      setState(prev => ({ ...prev, error: `Error de inicialización: ${errorMessage}`, isSocketConnected: false }));
+      configRef.current.onTranscriptionError?.(errorMessage);
       return false;
     }
-  }, [config, updateState]);
+  }, []);
 
   // Iniciar grabación
   const startRecording = useCallback(async () => {
@@ -135,7 +167,7 @@ export const useAudioTranscription = (config: AudioTranscriptionConfig) => {
       config.onTranscriptionError?.(errorMessage);
       return false;
     }
-  }, [state.isRecording, updateState, config]);
+  }, [state.isRecording, updateState]);
 
   // Detener grabación y procesar
   const stopRecording = useCallback(async () => {
@@ -146,6 +178,17 @@ export const useAudioTranscription = (config: AudioTranscriptionConfig) => {
       }
 
       console.log('⏹️ Stopping audio recording...');
+
+      // Obtener información de la grabación antes de detenerla
+      const recordingStatus = await recordingRef.current.getStatusAsync();
+      const durationMillis = recordingStatus.durationMillis || 0;
+      
+      console.log(`📊 Recording duration: ${durationMillis}ms`);
+      
+      // Validar duración mínima (100ms como requiere el servidor)
+      if (durationMillis < 100) {
+        throw new Error(`Grabación muy corta: ${durationMillis}ms. Se necesitan al menos 100ms de audio.`);
+      }
 
       // Detener grabación
       await recordingRef.current.stopAndUnloadAsync();
@@ -184,24 +227,52 @@ export const useAudioTranscription = (config: AudioTranscriptionConfig) => {
       config.onTranscriptionError?.(errorMessage);
       return false;
     }
-  }, [state.isRecording, config]);
+  }, [state.isRecording]);
 
   // Procesar archivo de audio
   const processAudioFile = useCallback(async (audioUri: string) => {
     try {
-      console.log('🔄 Processing audio file for WebSocket transmission...');
+      console.log('🔄 Processing audio file...');
       
+      // Si no hay conexión WebSocket, simular procesamiento offline
       if (!audioSocketRef.current || !state.isSocketConnected) {
-        throw new Error('Audio WebSocket not connected');
+        console.warn('⚠️ No WebSocket connection - simulating offline processing');
+        
+        updateState({ 
+          isProcessing: true,
+          transcribedText: 'Procesando en modo offline...'
+        });
+        
+        // Simular procesamiento
+          setTimeout(() => {
+            const offlineMessage = '🔇 Audio grabado exitosamente. La transcripción automática no está disponible sin conexión al servidor.';
+            updateState({ 
+              isProcessing: false,
+              transcribedText: offlineMessage,
+              error: null
+            });
+            configRef.current.onTranscriptionComplete?.(offlineMessage);
+          }, 2000);
+        
+        return;
       }
 
-      // Leer el archivo de audio y convertirlo a base64
+      // Leer información del archivo de audio primero
       console.log('📖 Reading audio file:', audioUri);
+      const fileInfo = await FileSystem.getInfoAsync(audioUri);
+      console.log('� File info:', fileInfo);
+      
+      if (!fileInfo.exists || fileInfo.size === 0) {
+        throw new Error('Audio file is empty or does not exist');
+      }
+      
+      // Leer el archivo de audio y convertirlo a base64
       const base64Audio = await FileSystem.readAsStringAsync(audioUri, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
       console.log('✅ Audio file read successfully');
+      console.log('📊 File size:', fileInfo.size, 'bytes');
       console.log('📊 Base64 audio length:', base64Audio.length);
       console.log('🔍 First 100 chars of base64:', base64Audio.substring(0, 100));
       
@@ -216,44 +287,37 @@ export const useAudioTranscription = (config: AudioTranscriptionConfig) => {
         console.warn('⚠️ Base64 validation failed, but continuing...');
       }
 
-      // Dividir el audio en chunks más pequeños para mejor transmisión
-      const chunkSize = 4096; // 4KB chunks
-      const chunks = [];
+      // Enviar el archivo completo como un solo chunk para evitar problemas de ensamblado
+      console.log(`📦 Sending complete audio file as single chunk, size: ${base64Audio.length} chars`);
+      console.log('� First 50 chars of base64:', base64Audio.substring(0, 50) + '...');
+      console.log('🔍 Last 50 chars of base64:', '...' + base64Audio.substring(base64Audio.length - 50));
       
-      for (let i = 0; i < base64Audio.length; i += chunkSize) {
-        const chunk = base64Audio.slice(i, i + chunkSize);
-        chunks.push(chunk);
-      }
-
-      console.log(`📦 Prepared ${chunks.length} audio chunks for transmission`);
-
-      // Enviar cada chunk con logging detallado
-      for (let i = 0; i < chunks.length; i++) {
-        const chunk = chunks[i];
-        console.log(`📤 Sending chunk ${i + 1}/${chunks.length}, size: ${chunk.length}`);
-        
-        // Log del primer chunk para debug
-        if (i === 0) {
-          console.log('🔍 First chunk preview:', chunk.substring(0, 50) + '...');
+      const completeAudioData = {
+        chunk: base64Audio, // Enviar todo el archivo
+        transmitter_id: config.transmitterId,
+        receiver_id: config.receiverId,
+        // Metadatos del archivo completo
+        isCompleteFile: true,
+        totalSize: base64Audio.length,
+        fileSize: fileInfo.size,
+        audioFormat: {
+          sampleRate: 24000,
+          channels: 1,
+          bitDepth: 16,
+          encoding: 'pcm16',
+          format: 'wav'
         }
-        
-        const chunkData = {
-          chunk: chunk,
-          transmitter_id: config.transmitterId,
-          receiver_id: config.receiverId,
-        };
-        
-        audioSocketRef.current.sendAudioChunk(chunkData);
-        
-        // Pausa entre chunks para evitar saturación
-        await new Promise(resolve => setTimeout(resolve, 50));
-      }
+      };
+      
+      console.log('📤 Sending complete audio data...');
+      audioSocketRef.current.sendAudioChunk(completeAudioData);
+      console.log('✅ Complete audio file sent successfully');
 
       // Finalizar grabación y esperar transcripción
       console.log('🏁 All chunks sent, requesting transcription...');
       const transcriptionResult = await audioSocketRef.current.stopRecording({
-        transmitter_id: config.transmitterId,
-        receiver_id: config.receiverId,
+        transmitter_id: configRef.current.transmitterId,
+        receiver_id: configRef.current.receiverId,
       });
 
       console.log('🎯 Transcription received:', transcriptionResult);
@@ -276,7 +340,7 @@ export const useAudioTranscription = (config: AudioTranscriptionConfig) => {
         error: null 
       });
       
-      config.onTranscriptionComplete?.(transcribedText);
+  configRef.current.onTranscriptionComplete?.(transcribedText);
 
       console.log('✅ Audio transcription completed successfully');
 
@@ -290,9 +354,9 @@ export const useAudioTranscription = (config: AudioTranscriptionConfig) => {
         transcribedText: ''
       });
       
-      config.onTranscriptionError?.(errorMessage);
+      configRef.current.onTranscriptionError?.(errorMessage);
     }
-  }, [state.isSocketConnected, config, updateState]);
+  }, [state.isSocketConnected, updateState]);
 
   // Limpiar texto transcrito
   const clearTranscription = useCallback(() => {
@@ -301,20 +365,45 @@ export const useAudioTranscription = (config: AudioTranscriptionConfig) => {
 
   // Limpiar recursos al desmontar
   const cleanup = useCallback(() => {
+    console.log('🧹 Starting cleanup of audio transcription service...');
+    isMountedRef.current = false;
+    
     if (recordingRef.current) {
       recordingRef.current.stopAndUnloadAsync().catch(console.error);
+      recordingRef.current = null;
     }
     if (audioSocketRef.current) {
       audioSocketRef.current.disconnect();
+      audioSocketRef.current = null;
     }
+    
+    // Reset initialization flag
+    isInitializedRef.current = false;
     console.log('🧹 Audio transcription service cleaned up');
   }, []);
 
-  // Inicializar al montar
+  // Inicializar al montar (solo una vez). Los callbacks y config se leen desde configRef
   useEffect(() => {
-    initializeAudioService();
-    return cleanup;
-  }, [initializeAudioService, cleanup]);
+    isMountedRef.current = true;
+    
+    const initService = async () => {
+      if (isMountedRef.current && !isInitializedRef.current) {
+        console.log('🚀 Starting audio service initialization...');
+        await initializeAudioService();
+        if (isMountedRef.current) {
+          console.log('✅ Audio service initialized (effect completed)');
+        }
+      }
+    };
+
+    initService();
+
+    return () => {
+      console.log('🔄 useEffect cleanup triggered');
+      cleanup();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     // Estado
@@ -329,6 +418,7 @@ export const useAudioTranscription = (config: AudioTranscriptionConfig) => {
     
     // Helpers
     toggleRecording: state.isRecording ? stopRecording : startRecording,
-    canRecord: state.isSocketConnected && !state.isProcessing,
+    // Permitir grabar tanto online como offline; solo bloquear si está procesando
+    canRecord: !state.isProcessing,
   };
 };

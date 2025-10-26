@@ -40,11 +40,11 @@ export const AudioRecorderComponent: React.FC<AudioRecorderProps> = ({
         <View
           style={[
             styles.statusIndicator,
-            { backgroundColor: audioTranscription.isSocketConnected ? '#10B981' : '#EF4444' }
+            { backgroundColor: audioTranscription.isSocketConnected ? '#10B981' : '#F59E0B' }
           ]}
         />
         <Text style={styles.statusText}>
-          {audioTranscription.isSocketConnected ? 'Conectado' : 'Desconectado'}
+          {audioTranscription.isSocketConnected ? 'Conectado (Transcripción automática)' : 'Modo Offline (Solo grabación)'}
         </Text>
       </View>
 

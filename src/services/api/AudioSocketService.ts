@@ -5,6 +5,17 @@ export interface AudioChunkData {
   chunk: string; // Audio en base64
   transmitter_id: number;
   receiver_id: number;
+  // Metadatos opcionales
+  isCompleteFile?: boolean;
+  totalSize?: number;
+  fileSize?: number;
+  audioFormat?: {
+    sampleRate: number;
+    channels: number;
+    bitDepth: number;
+    encoding: string;
+    format: string;
+  };
 }
 
 export interface StopRecordingData {
@@ -32,9 +43,15 @@ export class AudioSocketService {
       const baseUrl = getApiUrl().replace('/api', ''); // Remover /api para WebSocket
       console.log('Connecting to audio WebSocket:', baseUrl);
       
+      // Configurar transporte y reconexión con límites para evitar loops agresivos
       this.socket = io(baseUrl, {
-        transports: ['websocket'],
+        transports: ['polling', 'websocket'], // permitir polling como fallback
         forceNew: true,
+        reconnection: true,
+        reconnectionAttempts: 5, // máximo reintentos
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 4000,
+        timeout: 5000,
       });
 
       return new Promise((resolve) => {
@@ -61,12 +78,21 @@ export class AudioSocketService {
         });
 
         // Manejar respuestas de transcripción
-        this.socket.on('transcription_complete', (data) => {
-          console.log('🎯 Global transcription_complete received:', data);
+        this.socket.on('audio_transcription_complete', (data) => {
+          console.log('🎯 Global audio_transcription_complete received:', data);
         });
 
         this.socket.on('transcription_error', (error) => {
           console.error('🔥 Global transcription_error received:', error);
+        });
+
+        // También escuchar otros eventos relevantes
+        this.socket.on('transcription_result', (data) => {
+          console.log('🎯 Global transcription_result received:', data);
+        });
+
+        this.socket.on('new_message', (data) => {
+          console.log('📨 Global new_message received:', data);
         });
 
         // Listeners adicionales para debugging
@@ -109,6 +135,10 @@ export class AudioSocketService {
       transmitter_id: data.transmitter_id,
       receiver_id: data.receiver_id,
       chunkSize: data.chunk.length,
+      isCompleteFile: data.isCompleteFile || false,
+      totalSize: data.totalSize || 'unknown',
+      fileSize: data.fileSize || 'unknown',
+      audioFormat: data.audioFormat || 'not provided',
       socketConnected: this.socket.connected
     });
     
@@ -130,16 +160,16 @@ export class AudioSocketService {
 
       // Timeout para la transcripción (30 segundos)
       const timeout = setTimeout(() => {
-        this.socket!.off('transcription_complete', handleTranscription);
+        this.socket!.off('audio_transcription_complete', handleTranscription);
         this.socket!.off('transcription_error', handleError);
         reject(new Error('Transcription timeout - no response from server'));
       }, 30000);
 
       // Escuchar la respuesta de transcripción
       const handleTranscription = (transcriptionData: any) => {
-        console.log('✅ Received transcription_complete:', transcriptionData);
+        console.log('✅ Received audio_transcription_complete:', transcriptionData);
         clearTimeout(timeout);
-        this.socket!.off('transcription_complete', handleTranscription);
+        this.socket!.off('audio_transcription_complete', handleTranscription);
         this.socket!.off('transcription_error', handleError);
         resolve(transcriptionData);
       };
@@ -147,13 +177,13 @@ export class AudioSocketService {
       const handleError = (error: any) => {
         console.log('❌ Received transcription_error:', error);
         clearTimeout(timeout);
-        this.socket!.off('transcription_complete', handleTranscription);
+        this.socket!.off('audio_transcription_complete', handleTranscription);
         this.socket!.off('transcription_error', handleError);
         reject(error);
       };
 
       // Configurar listeners temporales para esta transcripción
-      this.socket.on('transcription_complete', handleTranscription);
+      this.socket.on('audio_transcription_complete', handleTranscription);
       this.socket.on('transcription_error', handleError);
 
       // Enviar evento de stop recording
