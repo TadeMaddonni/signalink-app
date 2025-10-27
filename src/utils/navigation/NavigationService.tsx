@@ -1,10 +1,10 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Compass, Home, MessageCircle, User, Users } from 'lucide-react-native';
+import { Compass, Home, User, Users } from 'lucide-react-native';
 import React from 'react';
-import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Platform } from 'react-native';
 
 import { AuthProvider, useAuth } from '../../contexts/auth/AuthContext';
 import '../../utils/i18n';
@@ -19,16 +19,15 @@ import ConnectGloveScreen from '../../screens/onboarding/ConnectGloveScreen';
 import HowItWorksScreen from '../../screens/onboarding/HowItWorksScreen';
 
 // Tab screens
-import ChatScreen from '../../screens/chat/ChatScreen';
 import ExploreScreen from '../../screens/explore/ExploreScreen';
-import GroupsScreen from '../../screens/group/GroupsScreen';
-import GroupDetailScreen from '../../screens/group/GroupDetailScreen';
 import EditGroupScreen from '../../screens/group/EditGroupScreen';
+import GroupDetailScreen from '../../screens/group/GroupDetailScreen';
+import GroupsScreen from '../../screens/group/GroupsScreen';
 import HomeScreen from '../../screens/home/HomeScreen';
 import ProfileScreen from '../../screens/profile/ProfileScreen';
 
 // Navigation types
-import { AuthStackParamList, OnboardingStackParamList, RootStackParamList, TabParamList, GroupsStackParamList } from '../../types';
+import { AuthStackParamList, GroupsStackParamList, OnboardingStackParamList, RootStackParamList, TabParamList } from '../../types';
 
 // Stack navigators
 const AuthStack = createStackNavigator<AuthStackParamList>();
@@ -148,16 +147,6 @@ function TabNavigatorComponent() {
           tabBarLabel: 'Home',
           tabBarIcon: ({ color }) => (
             <Home size={24} color={color} />
-          ),
-        }}
-      />
-      <TabNavigator.Screen 
-        name="Chat" 
-        component={ChatScreen}
-        options={{
-          tabBarLabel: 'Chat',
-          tabBarIcon: ({ color }) => (
-            <MessageCircle size={24} color={color} />
           ),
         }}
       />

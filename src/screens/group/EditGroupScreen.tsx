@@ -1,26 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { ArrowLeft, Search, Trash2, UserPlus, X } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
   ActivityIndicator,
-  Modal,
   Alert,
-  TextInput,
+  Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { ArrowLeft, UserPlus, Trash2, Search, X } from 'lucide-react-native';
-import { useTranslation } from 'react-i18next';
-import { GroupsStackParamList, Member, User } from '../../types';
 import GroupService from '../../services/group/GroupService';
 import UserService from '../../services/user/UserService';
+import { GroupsStackParamList, Member, User } from '../../types';
 import '../../utils/i18n';
 
 type EditGroupScreenRouteProp = RouteProp<GroupsStackParamList, 'EditGroup'>;
@@ -233,7 +233,7 @@ export default function EditGroupScreen() {
         <View style={styles.groupInfoSection}>
           <View style={styles.groupImageContainer}>
             <Image
-              source={require('../../../assets/images/group.png')}
+              source={require('../../../assets/images/glove.png')}
               style={styles.groupImage}
             />
           </View>

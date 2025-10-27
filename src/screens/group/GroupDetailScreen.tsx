@@ -1,20 +1,20 @@
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { ArrowLeft, Send } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
   Image,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { ArrowLeft, Send } from 'lucide-react-native';
-import { useTranslation } from 'react-i18next';
 import { GroupsStackParamList } from '../../types';
 import '../../utils/i18n';
 
@@ -67,7 +67,7 @@ export default function GroupDetailScreen() {
 
           <TouchableOpacity style={styles.groupInfo} onPress={handleGroupInfoPress}>
             <Image
-              source={require('../../../assets/images/group.png')}
+              source={require('../../../assets/images/glove.png')}
               style={styles.groupImage}
             />
             <View style={styles.groupTextContainer}>

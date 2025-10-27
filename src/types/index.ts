@@ -132,7 +132,6 @@ export type OnboardingStackParamList = {
 
 export type TabParamList = {
   Home: undefined;
-  Chat: undefined;
   Explore: undefined;
   Groups: undefined;
   Profile: undefined;

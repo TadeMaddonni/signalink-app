@@ -1,22 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { Plus } from 'lucide-react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
+  ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
-  View,
-  ActivityIndicator,
-  TouchableOpacity,
-  Modal,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { Plus, X } from 'lucide-react-native';
 import GroupCard from '../../components/ui/GroupCard';
 import GroupService from '../../services/group/GroupService';
 import { Group, GroupsStackParamList } from '../../types';
@@ -32,9 +30,40 @@ export default function GroupsScreen() {
   const [error, setError] = useState<string | null>(null);
 
   // Create group states
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
+  // Bottom sheet ref
+  const bottomSheetRef = useRef<BottomSheet>(null);
+
+  // Bottom sheet callbacks
+  const handleSheetChanges = useCallback((index: number) => {
+    if (index === -1) {
+      setGroupName('');
+    }
+  }, []);
+
+  const handleOpenCreateModal = useCallback(() => {
+    bottomSheetRef.current?.expand();
+  }, []);
+
+  const handleCloseCreateModal = useCallback(() => {
+    bottomSheetRef.current?.close();
+  }, []);
+
+  // Backdrop component
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        onPress={handleCloseCreateModal}
+      />
+    ),
+    [handleCloseCreateModal]
+  );
 
   useEffect(() => {
     loadGroups();
@@ -53,15 +82,6 @@ export default function GroupsScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleOpenCreateModal = () => {
-    setShowCreateModal(true);
-  };
-
-  const handleCloseCreateModal = () => {
-    setShowCreateModal(false);
-    setGroupName('');
   };
 
   const handleCreateGroup = async () => {
@@ -162,57 +182,68 @@ export default function GroupsScreen() {
         <Plus size={28} color="#000000" />
       </TouchableOpacity>
 
-      {/* Create Group Modal */}
-      <Modal
-        visible={showCreateModal}
-        transparent
-        animationType="slide"
-        onRequestClose={handleCloseCreateModal}
+      {/* Bottom Sheet */}
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={-1}
+        snapPoints={['50%']}
+        onChange={handleSheetChanges}
+        enablePanDownToClose
+        backgroundStyle={styles.bottomSheetBackground}
+        handleIndicatorStyle={styles.bottomSheetIndicator}
+        backdropComponent={renderBackdrop}
       >
-        <KeyboardAvoidingView
-          style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <View style={styles.createModalContent}>
-            {/* Header */}
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('groups.newGroup')}</Text>
-              <TouchableOpacity onPress={handleCloseCreateModal}>
-                <X size={24} color="#9CA3AF" />
-              </TouchableOpacity>
-            </View>
+        <BottomSheetView style={styles.bottomSheetContent}>
+          {/* Header */}
+          <View style={styles.bottomSheetHeader}>
+            <Text style={styles.bottomSheetTitle}>{t('groups.newGroup')}</Text>
+          </View>
 
-            {/* Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>{t('groups.groupName')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t('groups.groupNamePlaceholder')}
-                placeholderTextColor="#9CA3AF"
-                value={groupName}
-                onChangeText={setGroupName}
-                autoFocus
-                maxLength={50}
-              />
-            </View>
+          {/* Input */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>{t('groups.groupName')}</Text>
+            <TextInput
+              style={[
+                styles.input,
+                isInputFocused && styles.inputFocused
+              ]}
+              placeholder={t('groups.groupNamePlaceholder')}
+              placeholderTextColor="#9CA3AF"
+              value={groupName}
+              onChangeText={setGroupName}
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => setIsInputFocused(false)}
+              autoFocus
+              maxLength={50}
+            />
+          </View>
 
-            {/* Create Button */}
+          {/* Actions */}
+          <View style={styles.bottomSheetActions}>
             <TouchableOpacity
-              style={styles.createButton}
+              style={styles.cancelButton}
+              onPress={handleCloseCreateModal}
+            >
+              <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[
+                styles.createButton,
+                (!groupName.trim() || isCreating) && styles.createButtonDisabled
+              ]}
               onPress={handleCreateGroup}
-              disabled={isCreating}
+              disabled={isCreating || !groupName.trim()}
             >
               {isCreating ? (
                 <ActivityIndicator size="small" color="#000000" />
               ) : (
-                <Text style={styles.createButtonText}>
-                  {t('groups.create')}
-                </Text>
+                <Text style={styles.createButtonText}>{t('groups.create')}</Text>
               )}
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        </BottomSheetView>
+      </BottomSheet>
     </SafeAreaView>
   );
 }
@@ -282,7 +313,7 @@ const styles = StyleSheet.create({
   // Floating Action Button
   fab: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 100,
     right: 24,
     width: 64,
     height: 64,
@@ -299,34 +330,33 @@ const styles = StyleSheet.create({
     shadowRadius: 4.65,
     elevation: 8,
   },
-  // Modal styles
-  modalOverlay: {
+  // Bottom Sheet styles
+  bottomSheetBackground: {
+    backgroundColor: '#111111',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+  },
+  bottomSheetIndicator: {
+    backgroundColor: '#6B7280',
+    width: 40,
+  },
+  bottomSheetContent: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'flex-end',
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 32,
   },
-  createModalContent: {
-    backgroundColor: '#1F2937',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-    borderWidth: 1,
-    borderColor: '#374151',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  bottomSheetHeader: {
     marginBottom: 24,
+    alignItems: 'center',
   },
-  modalTitle: {
+  bottomSheetTitle: {
     color: '#ffffff',
     fontSize: 20,
     fontWeight: '600',
   },
   inputContainer: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   inputLabel: {
     color: '#ffffff',
@@ -335,19 +365,51 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#374151',
+    backgroundColor: '#000000',
+    borderWidth: 0,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     color: '#ffffff',
     fontSize: 16,
   },
+  inputFocused: {
+    shadowColor: '#f99f12',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  bottomSheetActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#374151',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButtonText: {
+    color: '#9CA3AF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   createButton: {
+    flex: 1,
     backgroundColor: '#f99f12',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  createButtonDisabled: {
+    backgroundColor: '#374151',
   },
   createButtonText: {
     color: '#000000',

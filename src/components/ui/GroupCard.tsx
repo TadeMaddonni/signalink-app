@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface GroupCardProps {
   groupId: number;
@@ -11,20 +11,29 @@ interface GroupCardProps {
 const GroupCard: React.FC<GroupCardProps> = ({ groupId, owner, owner_username, onPress }) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
-      {/* Contenido izquierdo */}
-      <View style={styles.leftContent}>
-        <Text style={styles.ownerText}>{owner}</Text>
-        <Text style={styles.createdByText}>
-          Creado por: {owner_username}
-        </Text>
+      {/* Avatar */}
+      <View style={styles.avatarContainer}>
+        <View style={styles.avatar}>
+          <Image
+            source={require('../../../assets/images/glove.png')}
+            style={styles.avatarImage}
+          />
+        </View>
       </View>
 
-      {/* Imagen derecha */}
-      <View style={styles.imageContainer}>
-        <Image
-          source={require('../../../assets/images/group.png')}
-          style={styles.image}
-        />
+      {/* Content */}
+      <View style={styles.content}>
+        <View style={styles.textContainer}>
+          <Text style={styles.groupName}>{owner}</Text>
+          <Text style={styles.lastMessage}>
+            Created by {owner_username}
+          </Text>
+        </View>
+      </View>
+
+      {/* Right Arrow */}
+      <View style={styles.arrowContainer}>
+        <Text style={styles.arrow}>›</Text>
       </View>
     </TouchableOpacity>
   );
@@ -32,40 +41,64 @@ const GroupCard: React.FC<GroupCardProps> = ({ groupId, owner, owner_username, o
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    borderRadius: 12,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    paddingRight: 16,
     alignItems: 'center',
-    backgroundColor: '#1F2937',
+    paddingVertical: 12,
+    backgroundColor: '#000000',
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
-  leftContent: {
-    flexDirection: 'column',
-    gap: 8,
+  avatarContainer: {
+    marginRight: 12,
   },
-  ownerText: {
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(249, 159, 18, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(249, 159, 18, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+  },
+  content: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  textContainer: {
+    flex: 1,
+  },
+  groupName: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
-    letterSpacing: -0.8,
+    marginBottom: 2,
+    letterSpacing: -0.3,
   },
-  createdByText: {
+  lastMessage: {
     color: '#9CA3AF',
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '400',
-    letterSpacing: -0.5,
+    opacity: 0.8,
+    letterSpacing: -0.2,
   },
-  imageContainer: {
-    borderRadius: 32,
-    borderWidth: 4,
-    borderColor: '#FFC452',
-    backgroundColor: '#FFF',
-    overflow: 'hidden',
+  arrowContainer: {
+    marginLeft: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  image: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  arrow: {
+    color: '#6B7280',
+    fontSize: 18,
+    fontWeight: '300',
   },
 });
 
