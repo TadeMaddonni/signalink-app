@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-  View,
-  Text,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
-import Animated, { FadeInDown, SlideInUp } from 'react-native-reanimated';
 import * as Animatable from 'react-native-animatable';
+import Animated, { FadeInDown, SlideInUp } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '../../components/ui/Card';
-import { ChatMessage, TranslationResult } from '../../types';
 import { SocketService } from '../../services/api/SocketService';
 import { BluetoothService } from '../../services/bluetooth/BluetoothService';
+import { ChatMessage, TranslationResult } from '../../types';
 import '../../utils/i18n';
 
 export default function ChatScreen() {
@@ -85,13 +87,18 @@ export default function ChatScreen() {
     setNewMessage('');
   };
 
+  const handleDismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   const formatTime = (timestamp: Date) => {
     return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
-      <KeyboardAvoidingView
+    <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
+      <SafeAreaView className="flex-1 bg-black">
+        <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
@@ -209,7 +216,8 @@ export default function ChatScreen() {
             </Text>
           </View>
         </Animated.View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }

@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -15,6 +16,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -71,6 +73,10 @@ export default function EditGroupScreen() {
 
   const handleBack = () => {
     navigation.goBack();
+  };
+
+  const handleDismissKeyboard = () => {
+    Keyboard.dismiss();
   };
 
   const handleEdit = () => {
@@ -214,9 +220,11 @@ export default function EditGroupScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
+    <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.innerContent}>
+          {/* Header */}
+          <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <ArrowLeft size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -228,7 +236,11 @@ export default function EditGroupScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Sección 1: Icono y nombre del grupo */}
         <View style={styles.groupInfoSection}>
           <View style={styles.groupImageContainer}>
@@ -504,9 +516,11 @@ export default function EditGroupScreen() {
               </TouchableOpacity>
             </View>
           </View>
+          </View>
+        </Modal>
         </View>
-      </Modal>
-    </SafeAreaView>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -514,6 +528,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
+  },
+  innerContent: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20, // Padding mínimo ya que el menú está oculto en esta pantalla
   },
   header: {
     flexDirection: 'row',

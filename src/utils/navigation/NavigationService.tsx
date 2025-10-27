@@ -1,5 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Compass, Home, User, Users } from 'lucide-react-native';
 import React from 'react';
@@ -153,11 +153,37 @@ function TabNavigatorComponent() {
       <TabNavigator.Screen
         name="Groups"
         component={GroupsStackNavigator}
-        options={{
-          tabBarLabel: t('groups.tabLabel'),
-          tabBarIcon: ({ color }) => (
-            <Users size={24} color={color} />
-          ),
+        options={({ route }: any) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? 'GroupsList';
+          
+          return {
+            tabBarLabel: t('groups.tabLabel'),
+            tabBarIcon: ({ color }) => (
+              <Users size={24} color={color} />
+            ),
+            tabBarStyle: routeName === 'GroupDetail' || routeName === 'EditGroup' 
+              ? { display: 'none' }
+              : {
+                backgroundColor: 'rgba(26, 26, 26, 0.8)',
+                borderTopWidth: 0,
+                height: Platform.OS === 'ios' ? 80 : 60,
+                paddingBottom: Platform.OS === 'ios' ? 8 : 8,
+                paddingTop: 8,
+                marginHorizontal: 16,
+                marginBottom: Platform.OS === 'ios' ? 20 : 10,
+                borderRadius: 35,
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 8,
+                position: 'absolute',
+                backdropFilter: 'blur(20px)',
+                ...(Platform.OS === 'ios' && {
+                  backgroundColor: 'rgba(26, 26, 26, 0.95)',
+                }),
+              },
+          };
         }}
       />
       <TabNavigator.Screen 
@@ -229,3 +255,4 @@ export function NavigationService() {
 
 // Export types
 export { AuthStackParamList, RootStackParamList, TabParamList };
+

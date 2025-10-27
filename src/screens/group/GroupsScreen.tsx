@@ -117,133 +117,138 @@ export default function GroupsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>{t('groups.title')}</Text>
-            <Text style={styles.subtitle}>
-              {t('groups.subtitle')}
-            </Text>
-          </View>
-
-          {/* Loading State */}
-          {isLoading && (
-            <View style={styles.centerContainer}>
-              <ActivityIndicator size="large" color="#f99f12" />
-              <Text style={styles.loadingText}>{t('groups.loading')}</Text>
-            </View>
-          )}
-
-          {/* Error State */}
-          {error && !isLoading && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          )}
-
-          {/* Groups List */}
-          {!isLoading && !error && groups.length > 0 && (
-            <View style={styles.groupsList}>
-              {groups.map((group) => (
-                <GroupCard
-                  key={group.id}
-                  groupId={group.id}
-                  owner={group.name}
-                  owner_username={group.owner_username}
-                  onPress={() => navigation.navigate('GroupDetail', {
-                    groupId: group.id,
-                    groupName: group.name,
-                    ownerUsername: group.owner_username,
-                  })}
-                />
-              ))}
-            </View>
-          )}
-
-          {/* Empty State */}
-          {!isLoading && !error && groups.length === 0 && (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{t('groups.empty')}</Text>
-              <Text style={styles.emptySubtext}>
-                {t('groups.emptySubtext')}
+      <View style={styles.innerContent}>
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <View style={styles.content}>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.title}>{t('groups.title')}</Text>
+              <Text style={styles.subtitle}>
+                {t('groups.subtitle')}
               </Text>
             </View>
-          )}
-        </View>
-      </ScrollView>
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={handleOpenCreateModal}
-        activeOpacity={0.8}
-      >
-        <Plus size={28} color="#000000" />
-      </TouchableOpacity>
+            {/* Loading State */}
+            {isLoading && (
+              <View style={styles.centerContainer}>
+                <ActivityIndicator size="large" color="#f99f12" />
+                <Text style={styles.loadingText}>{t('groups.loading')}</Text>
+              </View>
+            )}
 
-      {/* Bottom Sheet */}
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={-1}
-        snapPoints={['50%']}
-        onChange={handleSheetChanges}
-        enablePanDownToClose
-        backgroundStyle={styles.bottomSheetBackground}
-        handleIndicatorStyle={styles.bottomSheetIndicator}
-        backdropComponent={renderBackdrop}
-      >
-        <BottomSheetView style={styles.bottomSheetContent}>
-          {/* Header */}
-          <View style={styles.bottomSheetHeader}>
-            <Text style={styles.bottomSheetTitle}>{t('groups.newGroup')}</Text>
+            {/* Error State */}
+            {error && !isLoading && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            {/* Groups List */}
+            {!isLoading && !error && groups.length > 0 && (
+              <View style={styles.groupsList}>
+                {groups.map((group) => (
+                  <GroupCard
+                    key={group.id}
+                    groupId={group.id}
+                    owner={group.name}
+                    owner_username={group.owner_username}
+                    onPress={() => navigation.navigate('GroupDetail', {
+                      groupId: group.id,
+                      groupName: group.name,
+                      ownerUsername: group.owner_username,
+                    })}
+                  />
+                ))}
+              </View>
+            )}
+
+            {/* Empty State */}
+            {!isLoading && !error && groups.length === 0 && (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>{t('groups.empty')}</Text>
+                <Text style={styles.emptySubtext}>
+                  {t('groups.emptySubtext')}
+                </Text>
+              </View>
+            )}
           </View>
+        </ScrollView>
 
-          {/* Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>{t('groups.groupName')}</Text>
-            <TextInput
-              style={[
-                styles.input,
-                isInputFocused && styles.inputFocused
-              ]}
-              placeholder={t('groups.groupNamePlaceholder')}
-              placeholderTextColor="#9CA3AF"
-              value={groupName}
-              onChangeText={setGroupName}
-              onFocus={() => setIsInputFocused(true)}
-              onBlur={() => setIsInputFocused(false)}
-              autoFocus
-              maxLength={50}
-            />
-          </View>
+        {/* Floating Action Button */}
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={handleOpenCreateModal}
+          activeOpacity={0.8}
+        >
+          <Plus size={28} color="#000000" />
+        </TouchableOpacity>
 
-          {/* Actions */}
-          <View style={styles.bottomSheetActions}>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={handleCloseCreateModal}
-            >
-              <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[
-                styles.createButton,
-                (!groupName.trim() || isCreating) && styles.createButtonDisabled
-              ]}
-              onPress={handleCreateGroup}
-              disabled={isCreating || !groupName.trim()}
-            >
-              {isCreating ? (
-                <ActivityIndicator size="small" color="#000000" />
-              ) : (
-                <Text style={styles.createButtonText}>{t('groups.create')}</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </BottomSheetView>
-      </BottomSheet>
+        {/* Bottom Sheet */}
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={-1}
+          snapPoints={['50%']}
+          onChange={handleSheetChanges}
+          enablePanDownToClose
+          backgroundStyle={styles.bottomSheetBackground}
+          handleIndicatorStyle={styles.bottomSheetIndicator}
+          backdropComponent={renderBackdrop}
+        >
+          <BottomSheetView style={styles.bottomSheetContent}>
+            {/* Header */}
+            <View style={styles.bottomSheetHeader}>
+              <Text style={styles.bottomSheetTitle}>{t('groups.newGroup')}</Text>
+            </View>
+
+            {/* Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>{t('groups.groupName')}</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  isInputFocused && styles.inputFocused
+                ]}
+                placeholder={t('groups.groupNamePlaceholder')}
+                placeholderTextColor="#9CA3AF"
+                value={groupName}
+                onChangeText={setGroupName}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
+                autoFocus
+                maxLength={50}
+              />
+            </View>
+
+            {/* Actions */}
+            <View style={styles.bottomSheetActions}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleCloseCreateModal}
+              >
+                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.createButton,
+                  (!groupName.trim() || isCreating) && styles.createButtonDisabled
+                ]}
+                onPress={handleCreateGroup}
+                disabled={isCreating || !groupName.trim()}
+              >
+                {isCreating ? (
+                  <ActivityIndicator size="small" color="#000000" />
+                ) : (
+                  <Text style={styles.createButtonText}>{t('groups.create')}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </BottomSheetView>
+        </BottomSheet>
+      </View>
     </SafeAreaView>
   );
 }
@@ -252,6 +257,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
+  },
+  innerContent: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 100, // Espacio para la barra de navegación inferior
   },
   content: {
     paddingHorizontal: 24,
@@ -313,7 +324,7 @@ const styles = StyleSheet.create({
   // Floating Action Button
   fab: {
     position: 'absolute',
-    bottom: 100,
+    bottom: 100, // Aumentado para evitar superposición con el menú inferior
     right: 24,
     width: 64,
     height: 64,
