@@ -2,7 +2,7 @@ import { API_ROUTES } from '../../routes';
 
 // Configuración de la API
 export const API_CONFIG = {
-  BASE_URL: 'http://192.168.1.5:8080/api', // URL local del backend - Producción: 'https://signalink-877641582061.us-central1.run.app/api'
+  BASE_URL: 'http://192.168.1.3:8080/api', // URL local del backend - Producción: 'https://signalink-877641582061.us-central1.run.app/api'
   ROUTES: API_ROUTES,
   TIMEOUT: 10000, // 10 segundos
   REQUEST_TIMEOUT: 30000, // 30 segundos para requests largos

@@ -1,6 +1,7 @@
 import { buildRouteWithParams } from '../../routes';
 import { Group, Member } from '../../types';
-import { API_CONFIG, DEFAULT_HEADERS, buildFullUrl } from '../api/config';
+import { API_CONFIG, buildFullUrl, getAuthHeaders } from '../api/config';
+import AuthService from '../auth/AuthService';
 
 class GroupService {
   private static instance: GroupService;
@@ -13,17 +14,30 @@ class GroupService {
   }
 
   /**
+   * Obtener headers con autenticación
+   */
+  private async getHeaders(): Promise<HeadersInit> {
+    const token = await AuthService.getAuthToken();
+    return getAuthHeaders(token || undefined);
+  }
+
+  /**
    * Crear nuevo grupo
    */
   async createGroup(name: string, ownerId: number): Promise<Group> {
     try {
+      const headers = await this.getHeaders();
+      
       const response = await fetch(buildFullUrl(API_CONFIG.ROUTES.GROUP.CREATE), {
         method: 'POST',
-        headers: DEFAULT_HEADERS,
+        headers,
         body: JSON.stringify({ name, owner_id: ownerId }),
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('No autorizado. Por favor inicia sesión de nuevo.');
+        }
         if (response.status === 400) {
           throw new Error('Datos inválidos');
         }
@@ -45,6 +59,8 @@ class GroupService {
    */
   async updateGroup(groupId: number, name: string): Promise<Group> {
     try {
+      const headers = await this.getHeaders();
+      
       const route = buildRouteWithParams(
         API_CONFIG.ROUTES.GROUP.UPDATE,
         { group_id: groupId }
@@ -52,11 +68,14 @@ class GroupService {
 
       const response = await fetch(buildFullUrl(route), {
         method: 'PUT',
-        headers: DEFAULT_HEADERS,
+        headers,
         body: JSON.stringify({ name }),
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('No autorizado. Por favor inicia sesión de nuevo.');
+        }
         if (response.status === 404) {
           throw new Error('Grupo no encontrado');
         }
@@ -81,6 +100,8 @@ class GroupService {
    */
   async getGroupsByOwner(ownerId: number): Promise<Group[]> {
     try {
+      const headers = await this.getHeaders();
+      
       const route = buildRouteWithParams(
         API_CONFIG.ROUTES.GROUP.GET_BY_OWNER,
         { owner_id: ownerId }
@@ -88,10 +109,13 @@ class GroupService {
 
       const response = await fetch(buildFullUrl(route), {
         method: 'GET',
-        headers: DEFAULT_HEADERS,
+        headers,
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('No autorizado. Por favor inicia sesión de nuevo.');
+        }
         throw new Error('Error al obtener los grupos');
       }
 
@@ -110,6 +134,8 @@ class GroupService {
    */
   async getGroupMembers(groupId: number): Promise<Member[]> {
     try {
+      const headers = await this.getHeaders();
+      
       const route = buildRouteWithParams(
         API_CONFIG.ROUTES.GROUP.GET_MEMBERS,
         { group_id: groupId }
@@ -117,10 +143,13 @@ class GroupService {
 
       const response = await fetch(buildFullUrl(route), {
         method: 'GET',
-        headers: DEFAULT_HEADERS,
+        headers,
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('No autorizado. Por favor inicia sesión de nuevo.');
+        }
         if (response.status === 404) {
           throw new Error('Grupo no encontrado');
         }
@@ -142,6 +171,8 @@ class GroupService {
    */
   async deleteMember(groupId: number, userId: number): Promise<{ success: boolean; message: string }> {
     try {
+      const headers = await this.getHeaders();
+      
       const route = buildRouteWithParams(
         API_CONFIG.ROUTES.GROUP.DELETE_MEMBER,
         { group_id: groupId, user_id: userId }
@@ -149,10 +180,13 @@ class GroupService {
 
       const response = await fetch(buildFullUrl(route), {
         method: 'DELETE',
-        headers: DEFAULT_HEADERS,
+        headers,
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('No autorizado. Por favor inicia sesión de nuevo.');
+        }
         if (response.status === 404) {
           throw new Error('Grupo o miembro no encontrado');
         }
@@ -174,6 +208,8 @@ class GroupService {
    */
   async addMember(groupId: number, userId: number): Promise<{ success: boolean; message: string }> {
     try {
+      const headers = await this.getHeaders();
+      
       const route = buildRouteWithParams(
         API_CONFIG.ROUTES.GROUP.ADD_MEMBER,
         { group_id: groupId }
@@ -181,11 +217,14 @@ class GroupService {
 
       const response = await fetch(buildFullUrl(route), {
         method: 'POST',
-        headers: DEFAULT_HEADERS,
+        headers,
         body: JSON.stringify({ user_id: userId }),
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('No autorizado. Por favor inicia sesión de nuevo.');
+        }
         if (response.status === 404) {
           throw new Error('Grupo o usuario no encontrado');
         }

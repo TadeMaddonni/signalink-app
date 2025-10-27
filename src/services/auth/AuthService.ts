@@ -52,6 +52,14 @@ class AuthService {
         // Guardar información del usuario
         await AsyncStorage.setItem('user', JSON.stringify(user));
         
+        // Guardar token si viene en la respuesta
+        if (data.token) {
+          await AsyncStorage.setItem('auth_token', data.token);
+          console.log('✅ Token guardado exitosamente');
+        } else {
+          console.warn('⚠️ No se recibió token del backend');
+        }
+        
         return user;
       } else {
         // Si success es false o no existe, manejar como error
@@ -106,6 +114,14 @@ class AuthService {
 
         // Guardar información del usuario
         await AsyncStorage.setItem('user', JSON.stringify(user));
+        
+        // Guardar token si viene en la respuesta
+        if (data.token) {
+          await AsyncStorage.setItem('auth_token', data.token);
+          console.log('✅ Token guardado exitosamente en registro');
+        } else {
+          console.warn('⚠️ No se recibió token del backend en registro');
+        }
         
         return user;
       } else {

@@ -220,6 +220,31 @@ export interface Member {
   profile_image?: string;
 }
 
+// Message Types (API-based)
+export interface Message {
+  id: string;
+  groupId: number;
+  senderId: number;
+  text: string;
+  type: string;
+  createdAt: string;
+  audio_url?: string | null;
+  duration?: number | null;
+}
+
+export interface CreateMessagePayload {
+  text: string;
+  type: string;
+}
+
+export interface GetMessagesResponse {
+  messages: Message[];
+}
+
+export interface CreateMessageResponse {
+  message: Message;
+}
+
 // Groups Navigation Types
 export type GroupsStackParamList = {
   GroupsList: undefined;

@@ -1,9 +1,10 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ArrowLeft, Mic, Send, Square } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  ActivityIndicator,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -17,8 +18,10 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../../contexts/auth/AuthContext';
 import { useAudioTranscription } from '../../hooks/useAudioTranscription';
-import { GroupsStackParamList } from '../../types';
+import { MessageService } from '../../services/message';
+import { GroupsStackParamList, Message } from '../../types';
 import '../../utils/i18n';
 
 type GroupDetailScreenRouteProp = RouteProp<GroupsStackParamList, 'GroupDetail'>;
@@ -29,8 +32,42 @@ export default function GroupDetailScreen() {
   const navigation = useNavigation<GroupDetailScreenNavigationProp>();
   const route = useRoute<GroupDetailScreenRouteProp>();
   const { groupId, groupName, ownerUsername } = route.params;
+  const { user } = useAuth();
 
   const [messageText, setMessageText] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const messageService = MessageService.getInstance();
+
+  // Cargar mensajes al montar el componente
+  useEffect(() => {
+    loadMessages();
+  }, [groupId]);
+
+  // Auto-scroll cuando lleguen nuevos mensajes
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
+
+  const loadMessages = async () => {
+    try {
+      setIsLoadingMessages(true);
+      const fetchedMessages = await messageService.getGroupMessages(groupId);
+      setMessages(fetchedMessages);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      alert('Error al cargar los mensajes. Intenta de nuevo.');
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  };
 
   // Hook de transcripción de audio
   const audioTranscription = useAudioTranscription({
@@ -39,14 +76,16 @@ export default function GroupDetailScreen() {
     onTranscriptionStart: () => {
       console.log('🎙️ Transcription started');
     },
-    onTranscriptionComplete: (text: string) => {
+    onTranscriptionComplete: async (text: string) => {
       console.log('✅ Transcription completed:', text);
-      alert('Audio transcrito correctamente!');
       
-      // Auto-limpiar después de 10 segundos
+      // Enviar el mensaje de audio automáticamente
+      await sendAudioMessage(text);
+      
+      // Limpiar transcripción después de enviar
       setTimeout(() => {
         audioTranscription.clearTranscription();
-      }, 10000);
+      }, 2000);
     },
     onTranscriptionError: (error: string) => {
       console.error('❌ Transcription error:', error);
@@ -61,10 +100,51 @@ export default function GroupDetailScreen() {
     navigation.goBack();
   };
 
-  const handleSendMessage = () => {
-    // TODO: Implementar envío de mensajes
-    console.log('Send message:', messageText);
-    setMessageText('');
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || isSending) return;
+
+    try {
+      setIsSending(true);
+      const newMessage = await messageService.createMessage(groupId, messageText.trim(), 'text');
+      
+      // Añadir el nuevo mensaje a la lista
+      setMessages(prevMessages => [...prevMessages, newMessage]);
+      
+      // Limpiar el input
+      setMessageText('');
+      
+      // Hacer scroll al final
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Error al enviar el mensaje. Intenta de nuevo.');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const sendAudioMessage = async (transcribedText: string) => {
+    try {
+      setIsSending(true);
+      const newMessage = await messageService.createAudioMessage(groupId, transcribedText);
+      
+      // Añadir el nuevo mensaje a la lista
+      setMessages(prevMessages => [...prevMessages, newMessage]);
+      
+      // Hacer scroll al final
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+      
+      console.log('Audio message sent successfully');
+    } catch (error) {
+      console.error('Error sending audio message:', error);
+      alert('Error al enviar el mensaje de audio. Intenta de nuevo.');
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleRecordSigns = async () => {
@@ -86,6 +166,30 @@ export default function GroupDetailScreen() {
       groupName,
       ownerUsername,
     });
+  };
+
+  const formatMessageTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const diffMinutes = Math.floor(diff / 60000);
+    const diffHours = Math.floor(diff / 3600000);
+    const diffDays = Math.floor(diff / 86400000);
+
+    if (diffMinutes < 1) {
+      return 'Ahora';
+    } else if (diffMinutes < 60) {
+      return `Hace ${diffMinutes}m`;
+    } else if (diffHours < 24) {
+      return `Hace ${diffHours}h`;
+    } else if (diffDays < 7) {
+      return `Hace ${diffDays}d`;
+    } else {
+      return date.toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'short',
+      });
+    }
   };
 
   return (
@@ -127,17 +231,67 @@ export default function GroupDetailScreen() {
 
         {/* Body - Messages Area */}
         <ScrollView
+          ref={scrollViewRef}
           style={styles.messagesContainer}
           contentContainerStyle={styles.messagesContent}
         >
-          <View style={styles.emptyMessagesContainer}>
-            <Text style={styles.emptyMessagesText}>
-              {t('groups.noMessages')}
-            </Text>
-            <Text style={styles.emptyMessagesSubtext}>
-              {t('groups.startConversation')}
-            </Text>
-          </View>
+          {isLoadingMessages ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#FFC452" />
+              <Text style={styles.loadingText}>{t('groups.loadingMessages')}</Text>
+            </View>
+          ) : messages.length === 0 ? (
+            <View style={styles.emptyMessagesContainer}>
+              <Text style={styles.emptyMessagesText}>
+                {t('groups.noMessages')}
+              </Text>
+              <Text style={styles.emptyMessagesSubtext}>
+                {t('groups.startConversation')}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.messagesListContainer}>
+              {messages.map((message, index) => {
+                const isCurrentUser = user?.id === message.senderId;
+                
+                return (
+                  <View
+                    key={message.id}
+                    style={[
+                      styles.messageContainer,
+                      index === 0 && styles.firstMessage,
+                      isCurrentUser && styles.messageContainerRight,
+                    ]}
+                  >
+                    <View style={[
+                      styles.messageBubble,
+                      isCurrentUser && styles.messageBubbleRight,
+                    ]}>
+                      {message.type === 'audio' && (
+                        <View style={styles.audioMessageBadge}>
+                          <Mic size={12} color={isCurrentUser ? "#000000" : "#FFC452"} />
+                          <Text style={[
+                            styles.audioMessageBadgeText,
+                            isCurrentUser && styles.audioMessageBadgeTextRight,
+                          ]}>Audio</Text>
+                        </View>
+                      )}
+                      <Text style={[
+                        styles.messageText,
+                        isCurrentUser && styles.messageTextRight,
+                      ]}>{message.text}</Text>
+                      <Text style={[
+                        styles.messageTime,
+                        isCurrentUser && styles.messageTimeRight,
+                      ]}>
+                        {formatMessageTime(message.createdAt)}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          )}
         </ScrollView>
 
         {/* Transcribed Text Preview */}
@@ -191,12 +345,16 @@ export default function GroupDetailScreen() {
             <TouchableOpacity
               style={styles.sendButton}
               onPress={handleSendMessage}
-              disabled={!messageText.trim()}
+              disabled={!messageText.trim() || isSending}
             >
-              <Send
-                size={20}
-                color={messageText.trim() ? '#f99f12' : '#64748b'}
-              />
+              {isSending ? (
+                <ActivityIndicator size="small" color="#FFC452" />
+              ) : (
+                <Send
+                  size={20}
+                  color={messageText.trim() ? '#f99f12' : '#64748b'}
+                />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -263,11 +421,82 @@ const styles = StyleSheet.create({
   },
   messagesContent: {
     flexGrow: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    // Sin padding inferior ya que el menú está oculto en esta pantalla
+    alignItems: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    color: '#9CA3AF',
+    fontSize: 14,
+  },
+  messagesListContainer: {
+    gap: 12,
+  },
+  messageContainer: {
+    width: '100%',
+  },
+  messageContainerRight: {
+    alignItems: 'flex-end',
+  },
+  firstMessage: {
+    marginTop: 0,
+  },
+  messageBubble: {
+    backgroundColor: '#1F2937',
+    borderRadius: 16,
+    padding: 12,
+    maxWidth: '80%',
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#374151',
+  },
+  messageBubbleRight: {
+    backgroundColor: '#FFC452',
+    alignSelf: 'flex-end',
+    borderColor: '#F59E0B',
+  },
+  audioMessageBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 6,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#374151',
+  },
+  audioMessageBadgeText: {
+    color: '#FFC452',
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  audioMessageBadgeTextRight: {
+    color: '#000000',
+  },
+  messageText: {
+    color: '#ffffff',
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  messageTextRight: {
+    color: '#000000',
+  },
+  messageTime: {
+    color: '#6B7280',
+    fontSize: 11,
+    marginTop: 4,
+    alignSelf: 'flex-end',
+  },
+  messageTimeRight: {
+    color: '#78350F',
   },
   emptyMessagesContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 48,
