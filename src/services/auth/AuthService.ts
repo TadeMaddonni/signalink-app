@@ -21,6 +21,8 @@ class AuthService {
    */
   async login(credentials: LoginCredentials): Promise<User> {
     try {
+      console.log('🔐 Iniciando login para:', credentials.username);
+      
       const response = await fetch(buildFullUrl(API_CONFIG.ROUTES.AUTH.LOGIN), {
         method: 'POST',
         headers: DEFAULT_HEADERS,
@@ -30,10 +32,13 @@ class AuthService {
         }),
       });
 
+      console.log('📡 Response status:', response.status);
       const data = await response.json();
+      console.log('📦 Response data:', JSON.stringify(data, null, 2));
 
       // Si la respuesta HTTP no es ok, manejar como error
       if (!response.ok) {
+        console.error('❌ Response not OK:', response.status);
         // Si es un error de la API, puede venir con estructura { error: string }
         if (data && data.error) {
           throw new Error(data.error);
@@ -43,6 +48,11 @@ class AuthService {
 
       // Si la respuesta es exitosa, verificar la estructura
       if (data.success) {
+        console.log('✅ Login exitoso en backend');
+        // Limpiar datos anteriores primero
+        await AsyncStorage.multiRemove(['user', 'auth_token']);
+        console.log('🧹 Datos de sesión anterior limpiados');
+        
         const user: User = {
           id: data.user.id,
           name: data.user.name,
@@ -51,6 +61,7 @@ class AuthService {
 
         // Guardar información del usuario
         await AsyncStorage.setItem('user', JSON.stringify(user));
+        console.log('💾 Usuario guardado en AsyncStorage:', user.id, user.name);
         
         // Guardar token si viene en la respuesta
         if (data.token) {
@@ -63,10 +74,12 @@ class AuthService {
         return user;
       } else {
         // Si success es false o no existe, manejar como error
+        console.error('❌ Success es false o no existe en la respuesta');
         const errorMessage = data.error || data.message || 'Error en la autenticación';
         throw new Error(errorMessage);
       }
     } catch (error) {
+      console.error('💥 Error en login:', error);
       if (error instanceof Error) {
         throw error;
       }
@@ -104,6 +117,10 @@ class AuthService {
 
       // Si la respuesta es exitosa, verificar la estructura
       if (data.success) {
+        // Limpiar datos anteriores primero
+        await AsyncStorage.multiRemove(['user', 'auth_token']);
+        console.log('🧹 Datos de sesión anterior limpiados');
+        
         const user: User = {
           id: data.user_id,
           name: credentials.name,
@@ -144,6 +161,7 @@ class AuthService {
     try {
       // Remover datos del usuario y token
       await AsyncStorage.multiRemove(['user', 'auth_token']);
+      console.log('🔓 Sesión cerrada - Usuario y token eliminados');
     } catch (error) {
       console.error('Error during logout:', error);
       throw new Error('Error al cerrar sesión');

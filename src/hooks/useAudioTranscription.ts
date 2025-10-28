@@ -345,16 +345,36 @@ export const useAudioTranscription = (config: AudioTranscriptionConfig) => {
       console.log('✅ Audio transcription completed successfully');
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Error processing audio';
+      let errorMessage = 'Error al procesar el audio';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'error' in error) {
+        // Manejar errores del servidor como {error: "Error de transcripción: Connection error."}
+        const serverError = (error as any).error;
+        if (typeof serverError === 'string') {
+          errorMessage = serverError;
+        }
+      }
+      
       console.error('💥 Audio processing error:', errorMessage);
       
+      // Mensajes de error más amigables para el usuario
+      let userFriendlyMessage = errorMessage;
+      if (errorMessage.includes('Connection error') || errorMessage.includes('timeout')) {
+        userFriendlyMessage = 'El servidor de transcripción no está disponible. Por favor, inténtalo más tarde.';
+      } else if (errorMessage.includes('not connected')) {
+        userFriendlyMessage = 'No hay conexión con el servidor. Verifica tu conexión a internet.';
+      }
+      
       updateState({ 
-        error: errorMessage, 
+        error: userFriendlyMessage, 
         isProcessing: false,
         transcribedText: ''
       });
       
-      configRef.current.onTranscriptionError?.(errorMessage);
+      configRef.current.onTranscriptionError?.(userFriendlyMessage);
+      console.error('❌ Transcription error:', errorMessage);
     }
   }, [state.isSocketConnected, updateState]);
 

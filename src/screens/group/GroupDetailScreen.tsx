@@ -4,18 +4,18 @@ import { ArrowLeft, Mic, Send, Square } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Image,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    ActivityIndicator,
+    Image,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/auth/AuthContext';
@@ -41,6 +41,11 @@ export default function GroupDetailScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
 
   const messageService = MessageService.getInstance();
+
+  // Log del usuario actual para debugging
+  useEffect(() => {
+    console.log('👤 Usuario actual en GroupDetail:', user?.id, user?.name);
+  }, [user]);
 
   // Cargar mensajes al montar el componente
   useEffect(() => {
@@ -71,10 +76,11 @@ export default function GroupDetailScreen() {
 
   // Hook de transcripción de audio
   const audioTranscription = useAudioTranscription({
-    transmitterId: 1, // TODO: Obtener del contexto de auth
-    receiverId: 2,    // TODO: Obtener del contexto de auth o props
+    transmitterId: user?.id || 0, // ID del usuario que envía el mensaje
+    receiverId: groupId,          // ID del grupo (destinatario)
     onTranscriptionStart: () => {
       console.log('🎙️ Transcription started');
+      console.log('📤 Transmitter ID (user):', user?.id, '| Receiver ID (group):', groupId);
     },
     onTranscriptionComplete: async (text: string) => {
       console.log('✅ Transcription completed:', text);
@@ -148,6 +154,13 @@ export default function GroupDetailScreen() {
   };
 
   const handleRecordSigns = async () => {
+    // Validar que el usuario esté logueado
+    if (!user?.id) {
+      console.error('❌ No hay usuario logueado');
+      alert('Debes iniciar sesión para grabar mensajes');
+      return;
+    }
+    
     // Usar el hook de transcripción
     await audioTranscription.toggleRecording();
   };

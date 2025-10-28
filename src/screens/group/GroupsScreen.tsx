@@ -4,20 +4,21 @@ import { Plus } from 'lucide-react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import GroupCard from '../../components/ui/GroupCard';
+import { useAuth } from '../../contexts/auth/AuthContext';
 import GroupService from '../../services/group/GroupService';
 import { Group, GroupsStackParamList } from '../../types';
 import '../../utils/i18n';
@@ -27,6 +28,7 @@ type GroupsScreenNavigationProp = StackNavigationProp<GroupsStackParamList, 'Gro
 export default function GroupsScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<GroupsScreenNavigationProp>();
+  const { user } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,17 +50,24 @@ export default function GroupsScreen() {
   }, []);
 
   useEffect(() => {
-    loadGroups();
-  }, []);
+    if (user?.id) {
+      loadGroups();
+    }
+  }, [user?.id]); // Recargar cuando cambie el usuario
 
   const loadGroups = async () => {
+    if (!user?.id) {
+      console.warn('⚠️ No hay usuario logueado');
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
-      // TODO: Obtener el owner_id del usuario actual (por ahora hardcodeado a 4)
-      const ownerId = 4;
-      const fetchedGroups = await GroupService.getGroupsByOwner(ownerId);
+      console.log('📦 Cargando grupos para usuario:', user.id, user.name);
+      const fetchedGroups = await GroupService.getGroupsByOwner(user.id);
       setGroups(fetchedGroups);
+      console.log('✅ Grupos cargados:', fetchedGroups.length);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar los grupos');
     } finally {
@@ -72,11 +81,15 @@ export default function GroupsScreen() {
       return;
     }
 
+    if (!user?.id) {
+      Alert.alert(t('common.error'), 'No hay usuario logueado');
+      return;
+    }
+
     try {
       setIsCreating(true);
-      // TODO: Obtener el owner_id del usuario actual (por ahora hardcodeado a 4)
-      const ownerId = 4;
-      await GroupService.createGroup(groupName.trim(), ownerId);
+      console.log('➕ Creando grupo para usuario:', user.id, user.name);
+      await GroupService.createGroup(groupName.trim(), user.id);
 
       // Recargar la lista de grupos
       await loadGroups();

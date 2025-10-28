@@ -103,7 +103,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const user = await AuthService.getCurrentUser();
       if (user) {
+        console.log('👤 Usuario cargado desde AsyncStorage:', user.id, user.name);
         dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+      } else {
+        console.log('❌ No hay usuario guardado en AsyncStorage');
       }
     } catch (error) {
       console.error('Error loading saved user:', error);
@@ -115,6 +118,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
       const user = await AuthService.login(credentials);
+      console.log('✅ Login exitoso - Usuario en contexto:', user.id, user.name);
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error de conexión. Inténtalo de nuevo.';
@@ -143,6 +147,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       await AuthService.logout();
+      console.log('👋 Logout - Usuario eliminado del contexto');
       dispatch({ type: 'LOGOUT' });
     } catch (error) {
       console.error('Error during logout:', error);
