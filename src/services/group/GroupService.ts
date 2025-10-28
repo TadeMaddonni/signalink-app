@@ -96,15 +96,23 @@ class GroupService {
   }
 
   /**
-   * Obtener grupos por owner_id
+   * Obtener grupos por owner_id (DEPRECATED - usar getGroupsByUser en su lugar)
    */
   async getGroupsByOwner(ownerId: number): Promise<Group[]> {
+    console.warn('⚠️ getGroupsByOwner está deprecado, usa getGroupsByUser en su lugar');
+    return this.getGroupsByUser(ownerId);
+  }
+
+  /**
+   * Obtener grupos del usuario (miembro o propietario)
+   */
+  async getGroupsByUser(userId: number): Promise<Group[]> {
     try {
       const headers = await this.getHeaders();
       
       const route = buildRouteWithParams(
-        API_CONFIG.ROUTES.GROUP.GET_BY_OWNER,
-        { owner_id: ownerId }
+        API_CONFIG.ROUTES.GROUP.GET_BY_USER,
+        { user_id: userId }
       );
 
       const response = await fetch(buildFullUrl(route), {

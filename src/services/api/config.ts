@@ -3,7 +3,7 @@ import { API_ROUTES } from '../../routes';
 // Configuración de la API
 export const API_CONFIG = {
   // Siempre usa la URL de producción en Google Cloud
-  BASE_URL: 'https://signalink-877641582061.us-central1.run.app/api',
+  BASE_URL:  'https://signalink-877641582061.us-central1.run.app/api', //''http://172.20.10.3:8080/api' ,
   ROUTES: API_ROUTES,
   TIMEOUT: 10000, // 10 segundos
   REQUEST_TIMEOUT: 30000, // 30 segundos para requests largos

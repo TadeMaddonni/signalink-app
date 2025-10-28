@@ -2,7 +2,8 @@
 export const GROUP_ROUTES = {
   CREATE: '/groups/',
   UPDATE: '/groups/:group_id',
-  GET_BY_OWNER: '/groups/owner/:owner_id',
+  GET_BY_USER: '/groups/user/:user_id',  // Obtener grupos del usuario (miembro)
+  GET_BY_OWNER: '/groups/owner/:owner_id', // Obtener grupos del propietario (deprecated, usar GET_BY_USER)
   GET_MEMBERS: '/groups/:group_id/members',
   ADD_MEMBER: '/groups/:group_id/members',
   DELETE_MEMBER: '/groups/:group_id/members/:user_id',

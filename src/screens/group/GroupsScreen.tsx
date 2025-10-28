@@ -65,7 +65,7 @@ export default function GroupsScreen() {
       setIsLoading(true);
       setError(null);
       console.log('📦 Cargando grupos para usuario:', user.id, user.name);
-      const fetchedGroups = await GroupService.getGroupsByOwner(user.id);
+      const fetchedGroups = await GroupService.getGroupsByUser(user.id);
       setGroups(fetchedGroups);
       console.log('✅ Grupos cargados:', fetchedGroups.length);
     } catch (err) {
