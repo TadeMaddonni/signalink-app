@@ -1,10 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-    LoginCredentials,
-    RegisterCredentials,
-    User
+  LoginCredentials,
+  RegisterCredentials,
+  User
 } from '../../types';
 import { API_CONFIG, DEFAULT_HEADERS, buildFullUrl } from '../api/config';
+import UserService from '../user';
 
 class AuthService {
   private static instance: AuthService;
@@ -52,26 +53,26 @@ class AuthService {
         // Limpiar datos anteriores primero
         await AsyncStorage.multiRemove(['user', 'auth_token']);
         console.log('🧹 Datos de sesión anterior limpiados');
-        
-        const user: User = {
-          id: data.user.id,
-          name: data.user.name,
-          username: credentials.username,
-        };
 
-        // Guardar información del usuario
-        await AsyncStorage.setItem('user', JSON.stringify(user));
-        console.log('💾 Usuario guardado en AsyncStorage:', user.id, user.name);
-        
-        // Guardar token si viene en la respuesta
+        const baseUserId: number = data.user.id;
+
+        // Guardar token si viene en la respuesta (antes de llamadas subsiguientes)
         if (data.token) {
           await AsyncStorage.setItem('auth_token', data.token);
           console.log('✅ Token guardado exitosamente');
         } else {
           console.warn('⚠️ No se recibió token del backend');
         }
-        
-        return user;
+
+        // Obtener información completa del usuario por ID
+        const fullUser: User = await UserService.getUserById(baseUserId);
+        console.log('👤 Usuario completo desde API (post-login):', JSON.stringify(fullUser, null, 2));
+
+        // Guardar información completa del usuario
+        await AsyncStorage.setItem('user', JSON.stringify(fullUser));
+        console.log('💾 Usuario completo guardado en AsyncStorage:', fullUser.id, fullUser.name);
+
+        return fullUser;
       } else {
         // Si success es false o no existe, manejar como error
         console.error('❌ Success es false o no existe en la respuesta');

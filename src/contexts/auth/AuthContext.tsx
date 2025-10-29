@@ -1,5 +1,7 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, ReactNode, useContext, useEffect, useReducer } from 'react';
 import AuthService from '../../services/auth/AuthService';
+import UserService from '../../services/user';
 import { AuthState, LoginCredentials, RegisterCredentials, User } from '../../types';
 
 // Auth Actions
@@ -80,6 +82,7 @@ interface AuthContextType extends AuthState {
   clearError: () => void;
   completeOnboarding: () => void;
   loginAsGuest: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 // Create Context
@@ -104,6 +107,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const user = await AuthService.getCurrentUser();
       if (user) {
         console.log('👤 Usuario cargado desde AsyncStorage:', user.id, user.name);
+        console.log('🧩 Usuario completo desde AsyncStorage:', JSON.stringify(user, null, 2));
         dispatch({ type: 'LOGIN_SUCCESS', payload: user });
       } else {
         console.log('❌ No hay usuario guardado en AsyncStorage');
@@ -119,6 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const user = await AuthService.login(credentials);
       console.log('✅ Login exitoso - Usuario en contexto:', user.id, user.name);
+      console.log('🧩 Datos completos de usuario (post-login):', JSON.stringify(user, null, 2));
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error de conexión. Inténtalo de nuevo.';
@@ -154,6 +159,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const current = await AuthService.getCurrentUser();
+      if (!current?.id) {
+        console.warn('⚠️ No hay usuario para refrescar');
+        return;
+        }
+      console.log('🔄 Refrescando usuario desde API para ID:', current.id);
+      const updated: User = await UserService.getUserById(current.id);
+      console.log('✅ Usuario refrescado:', JSON.stringify(updated, null, 2));
+      await AuthService.clearAuthData();
+      // Conserva token existente si hay
+      const token = await AuthService.getAuthToken();
+      if (token) {
+        await AsyncStorage.setItem('auth_token', token);
+      }
+      await AsyncStorage.setItem('user', JSON.stringify(updated));
+      dispatch({ type: 'LOGIN_SUCCESS', payload: updated });
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+    }
+  };
+
   const clearError = () => {
     dispatch({ type: 'SET_ERROR', payload: null });
   };
@@ -174,6 +202,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     clearError,
     completeOnboarding,
     loginAsGuest,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

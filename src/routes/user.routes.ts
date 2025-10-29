@@ -3,6 +3,7 @@ export const USER_ROUTES = {
   PROFILE: '/user/profile',
   UPDATE_PROFILE: '/user/profile',
   SEARCH: '/users/search',
+  GET_BY_ID: '/users/:id',
 } as const;
 
 export type UserRouteKey = keyof typeof USER_ROUTES;

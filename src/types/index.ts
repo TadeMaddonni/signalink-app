@@ -9,6 +9,10 @@ export interface User {
   language?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  // Backend-aligned optional fields for conditional rendering
+  user_type?: string;
+  status?: string;
+  created_at?: string;
 }
 
 // Authentication Types
