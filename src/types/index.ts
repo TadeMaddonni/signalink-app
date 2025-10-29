@@ -1,4 +1,5 @@
 // User Types
+export type UserType = 'glove_user' | 'regular_user';
 export interface User {
   id: number;
   name: string;
@@ -10,7 +11,7 @@ export interface User {
   createdAt?: Date;
   updatedAt?: Date;
   // Backend-aligned optional fields for conditional rendering
-  user_type?: string;
+  user_type?: UserType;
   status?: string;
   created_at?: string;
 }
@@ -36,6 +37,7 @@ export interface RegisterCredentials {
   email: string;
   password: string;
   confirmPassword?: string;
+  user_type: UserType;
 }
 
 // API Response Types

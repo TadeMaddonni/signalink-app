@@ -121,7 +121,9 @@ export default function ChatScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingVertical: 16 }}
         >
-          {messages.map((message, index) => (
+          {messages
+            .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+            .map((message, index) => (
             <Animatable.View
               key={message.id}
               animation="fadeInUp"

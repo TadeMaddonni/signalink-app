@@ -1,6 +1,6 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { ArrowLeft, Mic, Send, Square } from 'lucide-react-native';
+import { ArrowLeft, Hand, Mic, Send, Square } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -264,7 +264,9 @@ export default function GroupDetailScreen() {
             </View>
           ) : (
             <View style={styles.messagesListContainer}>
-              {messages.map((message, index) => {
+              {messages
+                .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                .map((message, index) => {
                 const isCurrentUser = user?.id === message.senderId;
                 
                 return (
@@ -317,32 +319,49 @@ export default function GroupDetailScreen() {
 
         {/* Footer - Input Area */}
         <View style={styles.footer}>
-          {/* Record Signs Button */}
-          <TouchableOpacity
-            style={[
-              styles.recordButton, 
-              audioTranscription.isRecording && styles.recordButtonActive,
-              !audioTranscription.canRecord && styles.recordButtonDisabled
-            ]}
-            onPress={handleRecordSigns}
-            disabled={!audioTranscription.canRecord}
-          >
-            {audioTranscription.isRecording ? (
-              <Square size={20} color="#ffffff" />
-            ) : audioTranscription.isProcessing ? (
-              <Text style={{ color: '#ffffff', fontSize: 16 }}>⏳</Text>
-            ) : (
-              <Mic size={20} color="#ffffff" />
-            )}
-            <Text style={styles.recordButtonText}>
-              {audioTranscription.isRecording 
-                ? 'Detener' 
-                : audioTranscription.isProcessing 
-                  ? 'Procesando...' 
-                  : t('groups.recordSigns')
-              }
-            </Text>
-          </TouchableOpacity>
+          {/* Conditional Button based on user type */}
+          {user?.user_type === 'glove_user' ? (
+            // Glove User: Record Signs Button (no action yet)
+            <TouchableOpacity
+              style={styles.recordButton}
+              onPress={() => {
+                console.log('🖐️ Record signs button pressed (glove_user)');
+                // TODO: Implement glove recording logic
+              }}
+            >
+              <Hand size={20} color="#ffffff" />
+              <Text style={styles.recordButtonText}>
+                Record Signs
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            // Regular User: Voice Transcription Button
+            <TouchableOpacity
+              style={[
+                styles.recordButton, 
+                audioTranscription.isRecording && styles.recordButtonActive,
+                !audioTranscription.canRecord && styles.recordButtonDisabled
+              ]}
+              onPress={handleRecordSigns}
+              disabled={!audioTranscription.canRecord}
+            >
+              {audioTranscription.isRecording ? (
+                <Square size={20} color="#ffffff" />
+              ) : audioTranscription.isProcessing ? (
+                <Text style={{ color: '#ffffff', fontSize: 16 }}>⏳</Text>
+              ) : (
+                <Mic size={20} color="#ffffff" />
+              )}
+              <Text style={styles.recordButtonText}>
+                {audioTranscription.isRecording 
+                  ? 'Detener' 
+                  : audioTranscription.isProcessing 
+                    ? 'Procesando...' 
+                    : t('groups.recordSigns')
+                }
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {/* Message Input */}
           <View style={styles.inputContainer}>

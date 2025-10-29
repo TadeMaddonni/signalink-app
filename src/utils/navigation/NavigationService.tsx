@@ -83,8 +83,14 @@ function GroupsStackNavigator() {
 
 // Onboarding Stack
 function OnboardingStackNavigator() {
+  const { user } = useAuth();
+  
+  // regular_user ve solo BenefitsScreen, glove_user ve todo el flujo
+  const initialRouteName = user?.user_type === 'regular_user' ? 'Benefits' : 'ConnectGlove';
+  
   return (
     <OnboardingStack.Navigator
+      initialRouteName={initialRouteName}
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: '#000000' },

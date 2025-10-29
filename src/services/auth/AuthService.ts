@@ -93,6 +93,8 @@ class AuthService {
    */
   async register(credentials: RegisterCredentials): Promise<User> {
     try {
+      console.log('📝 Iniciando registro para:', credentials.username, 'Tipo:', credentials.user_type);
+      
       const response = await fetch(buildFullUrl(API_CONFIG.ROUTES.AUTH.REGISTER), {
         method: 'POST',
         headers: DEFAULT_HEADERS,
@@ -102,13 +104,33 @@ class AuthService {
           username: credentials.username,
           email: credentials.email,
           password: credentials.password,
+          user_type: credentials.user_type,
         }),
       });
 
-      const data = await response.json();
+      // Manejar errores de servidor (503, 502, etc.)
+      if (response.status >= 500) {
+        console.error('❌ Error del servidor:', response.status);
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `Error del servidor (${response.status})`);
+        }
+        throw new Error(`El servidor no está disponible (Error ${response.status}). Por favor intenta más tarde.`);
+      }
+
+      let data;
+      try {
+        data = await response.json();
+        console.log('📦 Response data:', JSON.stringify(data, null, 2));
+      } catch (parseError) {
+        console.error('❌ Error al parsear JSON:', parseError);
+        throw new Error('Respuesta inválida del servidor. Verifica que el backend esté funcionando.');
+      }
 
       // Si la respuesta HTTP no es ok, manejar como error
       if (!response.ok) {
+        console.error('❌ Response not OK:', response.status);
         // Si es un error de la API, puede venir con estructura { error: string }
         if (data && data.error) {
           throw new Error(data.error);
@@ -118,30 +140,30 @@ class AuthService {
 
       // Si la respuesta es exitosa, verificar la estructura
       if (data.success) {
+        console.log('✅ Registro exitoso en backend');
         // Limpiar datos anteriores primero
         await AsyncStorage.multiRemove(['user', 'auth_token']);
         console.log('🧹 Datos de sesión anterior limpiados');
-        
-        const user: User = {
-          id: data.user_id,
-          name: credentials.name,
-          surname: credentials.surname,
-          username: credentials.username,
-          email: credentials.email,
-        };
 
-        // Guardar información del usuario
-        await AsyncStorage.setItem('user', JSON.stringify(user));
-        
-        // Guardar token si viene en la respuesta
+        const baseUserId: number = data.user.id;
+
+        // Guardar token si viene en la respuesta (antes de llamadas subsiguientes)
         if (data.token) {
           await AsyncStorage.setItem('auth_token', data.token);
           console.log('✅ Token guardado exitosamente en registro');
         } else {
           console.warn('⚠️ No se recibió token del backend en registro');
         }
-        
-        return user;
+
+        // Obtener información completa del usuario por ID (igual que en login)
+        const fullUser: User = await UserService.getUserById(baseUserId);
+        console.log('� Usuario completo desde API (post-registro):', JSON.stringify(fullUser, null, 2));
+
+        // Guardar información completa del usuario
+        await AsyncStorage.setItem('user', JSON.stringify(fullUser));
+        console.log('💾 Usuario completo guardado en AsyncStorage:', fullUser.id, fullUser.name, 'Tipo:', fullUser.user_type);
+
+        return fullUser;
       } else {
         // Si success es false o no existe, manejar como error
         const errorMessage = data.error || data.message || 'Error en el registro';
