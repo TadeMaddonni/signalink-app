@@ -61,7 +61,7 @@ export default function GroupsScreen() {
 
     const interval = setInterval(() => {
       loadGroups(false); // No mostrar loading en refrescos automáticos
-    }, 2000); // 2000ms = 2 segundos
+    }, 10000); // 10000ms = 2 segundos
 
     // Limpiar el interval cuando el componente se desmonte
     return () => clearInterval(interval);

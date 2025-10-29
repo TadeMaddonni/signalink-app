@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import Animated, { FadeInDown, SlideInUp } from 'react-native-reanimated';
@@ -68,7 +68,7 @@ export default function ChatScreen() {
     const interval = setInterval(() => {
       const history = socketService.getMessageHistory();
       setMessages(history);
-    }, 2000); // 2000ms = 2 segundos
+    }, 10000); // 10000ms = 2 segundos
 
     return () => {
       unsubscribeMessages();

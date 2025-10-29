@@ -252,7 +252,7 @@ export const useAudioTranscription = (config: AudioTranscriptionConfig) => {
               error: null
             });
             configRef.current.onTranscriptionComplete?.(offlineMessage);
-          }, 2000);
+          }, 10000);
         
         return;
       }

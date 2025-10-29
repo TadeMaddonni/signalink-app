@@ -4,18 +4,18 @@ import { ArrowLeft, Hand, Mic, Send, Square } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Image,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  ActivityIndicator,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/auth/AuthContext';
@@ -56,7 +56,7 @@ export default function GroupDetailScreen() {
   useEffect(() => {
     const interval = setInterval(() => {
       loadMessages(false); // No mostrar loading en refrescos automáticos
-    }, 2000); // 2000ms = 2 segundos
+    }, 10000); // 10000ms = 2 segundos
 
     // Limpiar el interval cuando el componente se desmonte
     return () => clearInterval(interval);
@@ -108,7 +108,7 @@ export default function GroupDetailScreen() {
       // Limpiar transcripción después de enviar
       setTimeout(() => {
         audioTranscription.clearTranscription();
-      }, 2000);
+      }, 10000);
     },
     onTranscriptionError: (error: string) => {
       console.error('❌ Transcription error:', error);

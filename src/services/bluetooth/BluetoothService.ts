@@ -75,7 +75,7 @@ export class BluetoothService {
       console.log(`Connecting to device: ${deviceId}`);
       
       // Simulate connection delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 10000));
       
       // Mock connected device
       this.connectedDevice = {
@@ -162,7 +162,7 @@ export class BluetoothService {
         return;
       }
       this.simulateGloveData();
-    }, Math.random() * 3000 + 2000);
+    }, Math.random() * 3000 + 10000);
   }
 
   // Send command to glove

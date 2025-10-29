@@ -208,7 +208,7 @@ export class SocketService {
       });
       
       messageIndex++;
-    }, 2000);
+    }, 10000);
   }
 
   // Simulate receiving glove data and trigger translation
