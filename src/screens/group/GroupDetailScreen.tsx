@@ -52,6 +52,16 @@ export default function GroupDetailScreen() {
     loadMessages();
   }, [groupId]);
 
+  // Auto-refresh de mensajes cada 2 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadMessages(false); // No mostrar loading en refrescos automáticos
+    }, 2000); // 2000ms = 2 segundos
+
+    // Limpiar el interval cuando el componente se desmonte
+    return () => clearInterval(interval);
+  }, [groupId]);
+
   // Auto-scroll cuando lleguen nuevos mensajes
   useEffect(() => {
     if (messages.length > 0) {
@@ -61,16 +71,23 @@ export default function GroupDetailScreen() {
     }
   }, [messages]);
 
-  const loadMessages = async () => {
+  const loadMessages = async (showLoading = true) => {
     try {
-      setIsLoadingMessages(true);
+      if (showLoading) {
+        setIsLoadingMessages(true);
+      }
       const fetchedMessages = await messageService.getGroupMessages(groupId);
       setMessages(fetchedMessages);
     } catch (error) {
       console.error('Error loading messages:', error);
-      alert('Error al cargar los mensajes. Intenta de nuevo.');
+      // Solo mostrar alerta en la carga inicial, no en los refrescos automáticos
+      if (showLoading) {
+        alert('Error al cargar los mensajes. Intenta de nuevo.');
+      }
     } finally {
-      setIsLoadingMessages(false);
+      if (showLoading) {
+        setIsLoadingMessages(false);
+      }
     }
   };
 

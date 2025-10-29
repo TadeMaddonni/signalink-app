@@ -64,10 +64,17 @@ export default function ChatScreen() {
       }
     });
 
+    // Auto-refresh de mensajes cada 2 segundos
+    const interval = setInterval(() => {
+      const history = socketService.getMessageHistory();
+      setMessages(history);
+    }, 2000); // 2000ms = 2 segundos
+
     return () => {
       unsubscribeMessages();
       unsubscribeTranslations();
       unsubscribeGloveData();
+      clearInterval(interval);
     };
   }, []);
 

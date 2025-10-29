@@ -55,14 +55,28 @@ export default function GroupsScreen() {
     }
   }, [user?.id]); // Recargar cuando cambie el usuario
 
-  const loadGroups = async () => {
+  // Auto-refresh de grupos cada 2 segundos
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const interval = setInterval(() => {
+      loadGroups(false); // No mostrar loading en refrescos automáticos
+    }, 2000); // 2000ms = 2 segundos
+
+    // Limpiar el interval cuando el componente se desmonte
+    return () => clearInterval(interval);
+  }, [user?.id]);
+
+  const loadGroups = async (showLoading = true) => {
     if (!user?.id) {
       console.warn('⚠️ No hay usuario logueado');
       return;
     }
 
     try {
-      setIsLoading(true);
+      if (showLoading) {
+        setIsLoading(true);
+      }
       setError(null);
       console.log('📦 Cargando grupos para usuario:', user.id, user.name);
       const fetchedGroups = await GroupService.getGroupsByUser(user.id);
@@ -71,7 +85,9 @@ export default function GroupsScreen() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar los grupos');
     } finally {
-      setIsLoading(false);
+      if (showLoading) {
+        setIsLoading(false);
+      }
     }
   };
 
