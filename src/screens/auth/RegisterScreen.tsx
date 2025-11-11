@@ -16,14 +16,16 @@ import '../../utils/i18n';
 
 export default function RegisterScreen({ navigation }: any) {
   const { register, isLoading, error, clearError } = useAuth();
-  
+
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [language, setLanguage] = useState('en');
   const [errors, setErrors] = useState<any>({});
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   const handleRegister = async () => {
     // Simple validation
@@ -38,17 +40,18 @@ export default function RegisterScreen({ navigation }: any) {
     else if (password.length < 6) newErrors.password = 'Password must be at least 6 characters';
     if (!confirmPassword) newErrors.confirmPassword = 'Confirm password is required';
     else if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
-    
+    if (!language) newErrors.language = 'Language is required';
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    
+
     setErrors({});
     clearError();
-    
+
     try {
-      await register({ name, surname, username, email, password, confirmPassword });
+      await register({ name, surname, username, email, password, confirmPassword, language });
     } catch (error) {
       console.error('Register error:', error);
     }
@@ -65,15 +68,18 @@ export default function RegisterScreen({ navigation }: any) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>
+              Create Account
+            </Text>
+            <Text style={styles.subtitle}>
+              Join Signalink to communicate without barriers
+            </Text>
+          </View>
+
+          {/* Form */}
           <View style={styles.form}>
-            <View>
-              <Text style={styles.title}>
-                Create Account
-              </Text>
-              <Text style={styles.subtitle}>
-                Join Signalink to communicate without barriers
-              </Text>
-            </View>
 
             {error && (
               <View style={styles.errorContainer}>
@@ -83,81 +89,152 @@ export default function RegisterScreen({ navigation }: any) {
               </View>
             )}
 
-            <View>
-              <View style={styles.inputContainer}>
+            <View style={styles.inputContainer}>
+              <View style={styles.inputParent}>
                 <Text style={styles.inputLabel}>Name</Text>
                 <TextInput
-                  style={[styles.input, errors.name && styles.inputError]}
+                  style={[
+                    styles.input,
+                    errors.name && styles.inputError,
+                    focusedInput === 'name' && styles.inputFocused
+                  ]}
                   value={name}
                   onChangeText={setName}
                   placeholder="Enter your first name"
                   placeholderTextColor="#9CA3AF"
                   keyboardType="default"
+                  onFocus={() => setFocusedInput('name')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
               </View>
 
-              <View style={styles.inputContainer}>
+              <View style={styles.inputParent}>
                 <Text style={styles.inputLabel}>Surname</Text>
                 <TextInput
-                  style={[styles.input, errors.surname && styles.inputError]}
+                  style={[
+                    styles.input,
+                    errors.surname && styles.inputError,
+                    focusedInput === 'surname' && styles.inputFocused
+                  ]}
                   value={surname}
                   onChangeText={setSurname}
                   placeholder="Enter your last name"
                   placeholderTextColor="#9CA3AF"
                   keyboardType="default"
+                  onFocus={() => setFocusedInput('surname')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.surname && <Text style={styles.errorText}>{errors.surname}</Text>}
               </View>
 
-              <View style={styles.inputContainer}>
+              <View style={styles.inputParent}>
                 <Text style={styles.inputLabel}>Username</Text>
                 <TextInput
-                  style={[styles.input, errors.username && styles.inputError]}
+                  style={[
+                    styles.input,
+                    errors.username && styles.inputError,
+                    focusedInput === 'username' && styles.inputFocused
+                  ]}
                   value={username}
                   onChangeText={setUsername}
                   placeholder="Choose a username"
                   placeholderTextColor="#9CA3AF"
                   keyboardType="default"
+                  onFocus={() => setFocusedInput('username')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
               </View>
 
-              <View style={styles.inputContainer}>
+              <View style={styles.inputParent}>
                 <Text style={styles.inputLabel}>Email</Text>
                 <TextInput
-                  style={[styles.input, errors.email && styles.inputError]}
+                  style={[
+                    styles.input,
+                    errors.email && styles.inputError,
+                    focusedInput === 'email' && styles.inputFocused
+                  ]}
                   value={email}
                   onChangeText={setEmail}
                   placeholder="Enter your email"
                   placeholderTextColor="#9CA3AF"
                   keyboardType="email-address"
+                  onFocus={() => setFocusedInput('email')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
               </View>
 
-              <View style={styles.inputContainer}>
+              <View style={styles.inputParent}>
+                <Text style={styles.inputLabel}>Language</Text>
+                <View style={styles.languageSelector}>
+                  <TouchableOpacity
+                    style={[
+                      styles.languageButton,
+                      language === 'en' && styles.languageButtonActive
+                    ]}
+                    onPress={() => setLanguage('en')}
+                  >
+                    <Text style={[
+                      styles.languageButtonText,
+                      language === 'en' && styles.languageButtonTextActive
+                    ]}>
+                      English
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.languageButton,
+                      language === 'es' && styles.languageButtonActive
+                    ]}
+                    onPress={() => setLanguage('es')}
+                  >
+                    <Text style={[
+                      styles.languageButtonText,
+                      language === 'es' && styles.languageButtonTextActive
+                    ]}>
+                      Español
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                {errors.language && <Text style={styles.errorText}>{errors.language}</Text>}
+              </View>
+
+              <View style={styles.inputParent}>
                 <Text style={styles.inputLabel}>Password</Text>
                 <TextInput
-                  style={[styles.input, errors.password && styles.inputError]}
+                  style={[
+                    styles.input,
+                    errors.password && styles.inputError,
+                    focusedInput === 'password' && styles.inputFocused
+                  ]}
                   value={password}
                   onChangeText={setPassword}
                   placeholder="Enter your password"
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={true}
+                  onFocus={() => setFocusedInput('password')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
               </View>
 
-              <View style={styles.inputContainer}>
+              <View style={styles.inputParent}>
                 <Text style={styles.inputLabel}>Confirm Password</Text>
                 <TextInput
-                  style={[styles.input, errors.confirmPassword && styles.inputError]}
+                  style={[
+                    styles.input,
+                    errors.confirmPassword && styles.inputError,
+                    focusedInput === 'confirmPassword' && styles.inputFocused
+                  ]}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   placeholder="Confirm your password"
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={true}
+                  onFocus={() => setFocusedInput('confirmPassword')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
               </View>
@@ -201,7 +278,13 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+  },
+  header: {
+    marginTop: 24,
+    marginBottom: 32,
+    paddingHorizontal: 24,
+    alignItems: 'flex-start',
   },
   form: {
     paddingHorizontal: 24,
@@ -209,13 +292,19 @@ const styles = StyleSheet.create({
   title: {
     color: '#ffffff',
     fontSize: 32,
-    fontWeight: '600',
-    marginBottom: 8,
+    fontWeight: '700',
+    marginBottom: 12,
+    textAlign: 'left',
+    textShadowColor: '#d2981d',
+    textShadowOffset: { width: 0, height: 0.4 },
+    textShadowRadius: 12,
   },
   subtitle: {
-    color: '#9CA3AF',
-    fontSize: 16,
-    marginBottom: 32,
+    color: '#D1D5DB',
+    fontSize: 18,
+    lineHeight: 26,
+    textAlign: 'left',
+    opacity: 0.9,
   },
   errorContainer: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -231,22 +320,44 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   inputContainer: {
-    marginBottom: 16,
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 32,
+  },
+  inputParent: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 8,
   },
   inputLabel: {
     color: '#ffffff',
     fontSize: 16,
+    fontWeight: '600',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#374151',
+    backgroundColor: '#111111',
     borderWidth: 1,
-    borderColor: '#4B5563',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderColor: '#111111',
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    width: '100%',
     color: '#ffffff',
     fontSize: 16,
+    minHeight: 56,
+  },
+  inputFocused: {
+    borderColor: '#f99f12',
+    shadowColor: '#f99f12',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   inputError: {
     borderColor: '#EF4444',
@@ -262,7 +373,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 48,
     shadowColor: '#f99f12',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.55,
@@ -290,5 +401,40 @@ const styles = StyleSheet.create({
     color: '#f99f12',
     fontSize: 14,
     fontWeight: '500',
+  },
+  languageSelector: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 12,
+  },
+  languageButton: {
+    flex: 1,
+    backgroundColor: '#111111',
+    borderWidth: 1,
+    borderColor: '#111111',
+    borderRadius: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    minHeight: 56,
+    justifyContent: 'center',
+  },
+  languageButtonActive: {
+    backgroundColor: '#f99f12',
+    borderColor: '#f99f12',
+    shadowColor: '#f99f12',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  languageButtonText: {
+    color: '#9CA3AF',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  languageButtonTextActive: {
+    color: '#000000',
+    fontWeight: '600',
   },
 });

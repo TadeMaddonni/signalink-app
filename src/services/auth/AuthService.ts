@@ -5,6 +5,7 @@ import {
     User
 } from '../../types';
 import { API_CONFIG, DEFAULT_HEADERS, buildFullUrl } from '../api/config';
+import i18n from '../../utils/i18n';
 
 class AuthService {
   private static instance: AuthService;
@@ -47,11 +48,19 @@ class AuthService {
           id: data.user.id,
           name: data.user.name,
           username: credentials.username,
+          surname: data.user.surname,
+          email: data.user.email,
+          language: data.user.language || 'en',
         };
 
         // Guardar información del usuario
         await AsyncStorage.setItem('user', JSON.stringify(user));
-        
+
+        // Set i18n language based on user preference
+        if (user.language) {
+          await i18n.changeLanguage(user.language);
+        }
+
         return user;
       } else {
         // Si success es false o no existe, manejar como error
@@ -80,6 +89,7 @@ class AuthService {
           username: credentials.username,
           email: credentials.email,
           password: credentials.password,
+          language: credentials.language,
         }),
       });
 
@@ -102,11 +112,17 @@ class AuthService {
           surname: credentials.surname,
           username: credentials.username,
           email: credentials.email,
+          language: credentials.language,
         };
 
         // Guardar información del usuario
         await AsyncStorage.setItem('user', JSON.stringify(user));
-        
+
+        // Set i18n language based on user preference
+        if (user.language) {
+          await i18n.changeLanguage(user.language);
+        }
+
         return user;
       } else {
         // Si success es false o no existe, manejar como error
@@ -141,7 +157,14 @@ class AuthService {
     try {
       const userData = await AsyncStorage.getItem('user');
       if (userData) {
-        return JSON.parse(userData) as User;
+        const user = JSON.parse(userData) as User;
+
+        // Set i18n language based on saved user preference
+        if (user.language) {
+          await i18n.changeLanguage(user.language);
+        }
+
+        return user;
       }
       return null;
     } catch (error) {
