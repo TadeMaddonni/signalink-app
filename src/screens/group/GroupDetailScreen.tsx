@@ -1,6 +1,6 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { ArrowLeft, Hand, Mic, Send, Square } from 'lucide-react-native';
+import { ArrowLeft, Bluetooth, Hand, Mic, Send, Square } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,6 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/auth/AuthContext';
 import { useAudioTranscription } from '../../hooks/useAudioTranscription';
+import { useBluetoothGlove } from '../../hooks/useBluetoothGlove';
 import { MessageService } from '../../services/message';
 import { GroupsStackParamList, Message } from '../../types';
 import '../../utils/i18n';
@@ -42,10 +43,37 @@ export default function GroupDetailScreen() {
 
   const messageService = MessageService.getInstance();
 
+  // Hook para manejar la conexión Bluetooth con el guante
+  const {
+    connectionStatus,
+    receivedText,
+    isConnected: isGloveConnected,
+    error: bluetoothError,
+    connect: connectToGlove,
+    disconnect: disconnectFromGlove,
+    clearReceivedText,
+    clearError
+  } = useBluetoothGlove();
+
   // Log del usuario actual para debugging
   useEffect(() => {
     console.log('👤 Usuario actual en GroupDetail:', user?.id, user?.name);
   }, [user]);
+
+  // Manejar datos recibidos del guante BLE
+  useEffect(() => {
+    if (receivedText.trim()) {
+      console.log('🧤 Texto del guante recibido:', receivedText);
+      
+      // Enviar automáticamente como mensaje de texto al grupo
+      sendGloveMessage(receivedText);
+      
+      // Limpiar el texto después de un delay
+      setTimeout(() => {
+        clearReceivedText();
+      }, 2000);
+    }
+  }, [receivedText]);
 
   // Cargar mensajes al montar el componente
   useEffect(() => {
@@ -170,16 +198,50 @@ export default function GroupDetailScreen() {
     }
   };
 
+  const sendGloveMessage = async (gloveText: string) => {
+    try {
+      setIsSending(true);
+      console.log('🧤 Enviando mensaje del guante:', gloveText);
+      
+      // Crear mensaje con tipo especial para guante
+      const newMessage = await messageService.createMessage(groupId, gloveText, 'glove');
+      
+      // Añadir el nuevo mensaje a la lista
+      setMessages(prevMessages => [...prevMessages, newMessage]);
+      
+      // Hacer scroll al final
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+      
+      console.log('✅ Mensaje del guante enviado correctamente');
+    } catch (error) {
+      console.error('❌ Error enviando mensaje del guante:', error);
+      alert('Error al enviar el mensaje del guante. Intenta de nuevo.');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const handleRecordSigns = async () => {
     // Validar que el usuario esté logueado
     if (!user?.id) {
       console.error('❌ No hay usuario logueado');
-      alert('Debes iniciar sesión para grabar mensajes');
+      alert('Debes iniciar sesión para usar el guante');
       return;
     }
     
-    // Usar el hook de transcripción
-    await audioTranscription.toggleRecording();
+    // Si ya está conectado, desconectar
+    if (isGloveConnected) {
+      console.log('🔌 Desconectando del guante...');
+      await disconnectFromGlove();
+      return;
+    }
+    
+    // Si no está conectado, intentar conectar
+    console.log('🧤 Conectando al guante...');
+    clearError(); // Limpiar errores previos
+    await connectToGlove();
   };
 
 
@@ -334,21 +396,70 @@ export default function GroupDetailScreen() {
           </View>
         ) : null}
 
+        {/* Bluetooth Connection Status and Received Text (for glove_user) */}
+        {user?.user_type === 'glove_user' && (
+          <>
+            {/* Connection Status */}
+            {(connectionStatus.isConnecting || connectionStatus.isScanning || isGloveConnected || bluetoothError) && (
+              <View style={styles.bluetoothStatusContainer}>
+                {connectionStatus.isConnecting && (
+                  <Text style={styles.bluetoothStatusText}>🔄 Conectando al guante...</Text>
+                )}
+                {connectionStatus.isScanning && (
+                  <Text style={styles.bluetoothStatusText}>🔍 Buscando guante SignaLink...</Text>
+                )}
+                {isGloveConnected && (
+                  <Text style={styles.bluetoothStatusSuccess}>
+                    ✅ Conectado a {connectionStatus.deviceName || 'Guante SignaLink'}
+                    {connectionStatus.rssi && ` (${connectionStatus.rssi} dBm)`}
+                  </Text>
+                )}
+                {bluetoothError && (
+                  <Text style={styles.bluetoothStatusError}>❌ {bluetoothError}</Text>
+                )}
+              </View>
+            )}
+
+            {/* Received Text from Glove */}
+            {receivedText && (
+              <View style={styles.receivedTextContainer}>
+                <Text style={styles.receivedTextLabel}>🧤 Texto del guante:</Text>
+                <Text style={styles.receivedText}>{receivedText}</Text>
+              </View>
+            )}
+          </>
+        )}
+
         {/* Footer - Input Area */}
         <View style={styles.footer}>
           {/* Conditional Button based on user type */}
           {user?.user_type === 'glove_user' ? (
-            // Glove User: Record Signs Button (no action yet)
+            // Glove User: Record Signs Button with Bluetooth connection
             <TouchableOpacity
-              style={styles.recordButton}
-              onPress={() => {
-                console.log('🖐️ Record signs button pressed (glove_user)');
-                // TODO: Implement glove recording logic
-              }}
+              style={[
+                styles.recordButton, 
+                isGloveConnected && styles.recordButtonActive,
+                connectionStatus.isConnecting && styles.recordButtonDisabled
+              ]}
+              onPress={handleRecordSigns}
+              disabled={connectionStatus.isConnecting}
             >
-              <Hand size={20} color="#ffffff" />
+              {connectionStatus.isConnecting ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : isGloveConnected ? (
+                <Bluetooth size={20} color="#ffffff" />
+              ) : (
+                <Hand size={20} color="#ffffff" />
+              )}
               <Text style={styles.recordButtonText}>
-                Record Signs
+                {connectionStatus.isConnecting 
+                  ? 'Conectando...'
+                  : connectionStatus.isScanning
+                    ? 'Buscando...'
+                    : isGloveConnected 
+                      ? 'Desconectar' 
+                      : 'Conectar Guante'
+                }
               </Text>
             </TouchableOpacity>
           ) : (
@@ -481,7 +592,54 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     color: '#9CA3AF',
+    fontSize: 12,
+  },
+  // Estilos para el estado de conexión Bluetooth
+  bluetoothStatusContainer: {
+    backgroundColor: '#1F2937',
+    padding: 12,
+    marginHorizontal: 16,
+    marginVertical: 4,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#3B82F6', // Azul para Bluetooth
+  },
+  bluetoothStatusText: {
+    color: '#93C5FD', // Azul claro
     fontSize: 14,
+    fontWeight: '500',
+  },
+  bluetoothStatusSuccess: {
+    color: '#10B981', // Verde para conectado
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  bluetoothStatusError: {
+    color: '#EF4444', // Rojo para errores
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  // Estilos para el texto recibido del guante
+  receivedTextContainer: {
+    backgroundColor: '#1F2937',
+    padding: 16,
+    marginHorizontal: 16,
+    marginVertical: 4,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#3B82F6', // Azul para guante
+  },
+  receivedTextLabel: {
+    color: '#3B82F6', // Azul
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  receivedText: {
+    color: '#ffffff',
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: '500',
   },
   messagesListContainer: {
     gap: 12,
