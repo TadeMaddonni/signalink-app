@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../contexts/auth/AuthContext';
+import { UserType } from '../../types';
 import '../../utils/i18n';
 
 export default function RegisterScreen({ navigation }: any) {
@@ -24,6 +25,7 @@ export default function RegisterScreen({ navigation }: any) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [language, setLanguage] = useState('en');
+  const [userType, setUserType] = useState<UserType>('regular_user');
   const [errors, setErrors] = useState<any>({});
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
@@ -51,7 +53,16 @@ export default function RegisterScreen({ navigation }: any) {
     clearError();
 
     try {
-      await register({ name, surname, username, email, password, confirmPassword, language });
+      await register({
+        name,
+        surname,
+        username,
+        email,
+        password,
+        confirmPassword,
+        language,
+        user_type: userType
+      });
     } catch (error) {
       console.error('Register error:', error);
     }
@@ -126,6 +137,59 @@ export default function RegisterScreen({ navigation }: any) {
                   onBlur={() => setFocusedInput(null)}
                 />
                 {errors.surname && <Text style={styles.errorText}>{errors.surname}</Text>}
+              </View>
+
+              <View style={styles.inputParent}>
+                <Text style={styles.inputLabel}>User Type</Text>
+                <View style={styles.userTypeContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.userTypeButton,
+                      userType === 'regular_user' && styles.userTypeButtonActive,
+                    ]}
+                    onPress={() => setUserType('regular_user')}
+                  >
+                    <View style={[
+                      styles.radioCircle,
+                      userType === 'regular_user' && styles.radioCircleActive,
+                    ]}>
+                      {userType === 'regular_user' && <View style={styles.radioDot} />}
+                    </View>
+                    <View style={styles.userTypeTextContainer}>
+                      <Text style={[
+                        styles.userTypeTitle,
+                        userType === 'regular_user' && styles.userTypeTitleActive,
+                      ]}>Regular User</Text>
+                      <Text style={styles.userTypeDescription}>
+                        Standard user account
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.userTypeButton,
+                      userType === 'glove_user' && styles.userTypeButtonActive,
+                    ]}
+                    onPress={() => setUserType('glove_user')}
+                  >
+                    <View style={[
+                      styles.radioCircle,
+                      userType === 'glove_user' && styles.radioCircleActive,
+                    ]}>
+                      {userType === 'glove_user' && <View style={styles.radioDot} />}
+                    </View>
+                    <View style={styles.userTypeTextContainer}>
+                      <Text style={[
+                        styles.userTypeTitle,
+                        userType === 'glove_user' && styles.userTypeTitleActive,
+                      ]}>Glove User</Text>
+                      <Text style={styles.userTypeDescription}>
+                        User with sign language glove
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <View style={styles.inputParent}>
@@ -436,5 +500,64 @@ const styles = StyleSheet.create({
   languageButtonTextActive: {
     color: '#000000',
     fontWeight: '600',
+  },
+  userTypeContainer: {
+    gap: 12,
+    width: '100%',
+  },
+  userTypeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#111111',
+    borderWidth: 1,
+    borderColor: '#111111',
+    borderRadius: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    gap: 12,
+    minHeight: 56,
+  },
+  userTypeButtonActive: {
+    borderColor: '#f99f12',
+    backgroundColor: '#111111',
+    shadowColor: '#f99f12',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  radioCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#4B5563',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioCircleActive: {
+    borderColor: '#f99f12',
+  },
+  radioDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#f99f12',
+  },
+  userTypeTextContainer: {
+    flex: 1,
+  },
+  userTypeTitle: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  userTypeTitleActive: {
+    color: '#f99f12',
+  },
+  userTypeDescription: {
+    color: '#9CA3AF',
+    fontSize: 14,
   },
 });

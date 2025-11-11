@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Animated, { FadeInDown, SlideInUp } from 'react-native-reanimated';
+import {
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
+} from 'react-native';
 import * as Animatable from 'react-native-animatable';
+import Animated, { FadeInDown, SlideInUp } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '../../components/ui/Card';
-import { ChatMessage, TranslationResult } from '../../types';
 import { SocketService } from '../../services/api/SocketService';
 import { BluetoothService } from '../../services/bluetooth/BluetoothService';
+import { ChatMessage, TranslationResult } from '../../types';
 import '../../utils/i18n';
 
 export default function ChatScreen() {
@@ -62,10 +64,17 @@ export default function ChatScreen() {
       }
     });
 
+    // Auto-refresh de mensajes cada 2 segundos
+    const interval = setInterval(() => {
+      const history = socketService.getMessageHistory();
+      setMessages(history);
+    }, 10000); // 10000ms = 2 segundos
+
     return () => {
       unsubscribeMessages();
       unsubscribeTranslations();
       unsubscribeGloveData();
+      clearInterval(interval);
     };
   }, []);
 
@@ -85,13 +94,18 @@ export default function ChatScreen() {
     setNewMessage('');
   };
 
+  const handleDismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
+
   const formatTime = (timestamp: Date) => {
     return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
-      <KeyboardAvoidingView
+    <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
+      <SafeAreaView className="flex-1 bg-black">
+        <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
@@ -114,7 +128,9 @@ export default function ChatScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingVertical: 16 }}
         >
-          {messages.map((message, index) => (
+          {messages
+            .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+            .map((message, index) => (
             <Animatable.View
               key={message.id}
               animation="fadeInUp"
@@ -209,7 +225,8 @@ export default function ChatScreen() {
             </Text>
           </View>
         </Animated.View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }

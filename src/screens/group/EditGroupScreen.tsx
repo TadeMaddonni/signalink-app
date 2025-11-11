@@ -1,26 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { ArrowLeft, Search, Trash2, UserPlus, X } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
   ActivityIndicator,
-  Modal,
   Alert,
-  TextInput,
+  Image,
+  Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { ArrowLeft, UserPlus, Trash2, Search, X } from 'lucide-react-native';
-import { useTranslation } from 'react-i18next';
-import { GroupsStackParamList, Member, User } from '../../types';
 import GroupService from '../../services/group/GroupService';
 import UserService from '../../services/user/UserService';
+import { GroupsStackParamList, Member, User } from '../../types';
 import '../../utils/i18n';
 
 type EditGroupScreenRouteProp = RouteProp<GroupsStackParamList, 'EditGroup'>;
@@ -71,6 +73,10 @@ export default function EditGroupScreen() {
 
   const handleBack = () => {
     navigation.goBack();
+  };
+
+  const handleDismissKeyboard = () => {
+    Keyboard.dismiss();
   };
 
   const handleEdit = () => {
@@ -214,9 +220,11 @@ export default function EditGroupScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
+    <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.innerContent}>
+          {/* Header */}
+          <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <ArrowLeft size={24} color="#ffffff" />
         </TouchableOpacity>
@@ -228,12 +236,16 @@ export default function EditGroupScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Sección 1: Icono y nombre del grupo */}
         <View style={styles.groupInfoSection}>
           <View style={styles.groupImageContainer}>
             <Image
-              source={require('../../../assets/images/group.png')}
+              source={require('../../../assets/images/glove.png')}
               style={styles.groupImage}
             />
           </View>
@@ -504,9 +516,11 @@ export default function EditGroupScreen() {
               </TouchableOpacity>
             </View>
           </View>
+          </View>
+        </Modal>
         </View>
-      </Modal>
-    </SafeAreaView>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -514,6 +528,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
+  },
+  innerContent: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20, // Padding mínimo ya que el menú está oculto en esta pantalla
   },
   header: {
     flexDirection: 'row',

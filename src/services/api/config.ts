@@ -2,7 +2,8 @@ import { API_ROUTES } from '../../routes';
 
 // Configuración de la API
 export const API_CONFIG = {
-  BASE_URL: 'https://signalink-877641582061.us-central1.run.app/api', // URL del backend en Google Cloud
+  // Siempre usa la URL de producción en Google Cloud
+  BASE_URL:  'https://signalink-877641582061.us-central1.run.app/api', //''http://172.20.10.3:8080/api' ,
   ROUTES: API_ROUTES,
   TIMEOUT: 10000, // 10 segundos
   REQUEST_TIMEOUT: 30000, // 30 segundos para requests largos
@@ -22,14 +23,8 @@ export const getAuthHeaders = (token?: string) => ({
 
 // Configuración de desarrollo vs producción
 export const getApiUrl = (): string => {
-  if (__DEV__) {
-    // En desarrollo, puedes usar la IP de tu computadora
-    // return 'http://192.168.1.100:3000'; // Reemplaza con tu IP local
-    return API_CONFIG.BASE_URL;
-  }
-  
-  // En producción, usa la URL real de tu API
-  return 'https://your-production-api.com';
+  // En desarrollo y producción usa BASE_URL
+  return API_CONFIG.BASE_URL;
 };
 
 // Helper para construir URL completa
