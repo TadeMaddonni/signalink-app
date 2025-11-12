@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal as RNModal, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, Modal as RNModal, Dimensions, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -61,8 +61,7 @@ export const Modal: React.FC<ModalProps> = ({
       onRequestClose={onClose}
     >
       <Animated.View
-        style={backdropStyle}
-        className="flex-1 bg-black/50 justify-end"
+        style={[backdropStyle, modalStyles.backdrop]}
       >
         <TouchableOpacity
           style={{ flex: 1 }}
@@ -71,22 +70,21 @@ export const Modal: React.FC<ModalProps> = ({
         />
         
         <Animated.View
-          style={modalStyle}
-          className="bg-gray-900 rounded-t-3xl px-6 pb-safe-bottom pt-6 max-h-3/4"
+          style={[modalStyle, modalStyles.modalContainer]}
         >
           {showCloseButton && (
             <TouchableOpacity
               onPress={onClose}
-              className="items-end mb-4"
+              style={modalStyles.closeButtonContainer}
             >
-              <View className="w-8 h-8 rounded-full bg-gray-700 items-center justify-center">
-                <Text className="text-white text-lg font-medium">×</Text>
+              <View style={modalStyles.closeButton}>
+                <Text style={modalStyles.closeButtonText}>×</Text>
               </View>
             </TouchableOpacity>
           )}
           
           {title && (
-            <Text className="text-white font-inter-medium text-xl mb-6 text-center">
+            <Text style={modalStyles.title}>
               {title}
             </Text>
           )}
@@ -97,3 +95,43 @@ export const Modal: React.FC<ModalProps> = ({
     </RNModal>
   );
 };
+
+const modalStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: '#111827', // gray-900
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    maxHeight: '75%',
+  },
+  closeButtonContainer: {
+    alignItems: 'flex-end',
+    marginBottom: 16,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#374151', // gray-700
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '500',
+  },
+  title: {
+    color: '#ffffff',
+    fontWeight: '500',
+    fontSize: 20,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+});

@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../../contexts/auth/AuthContext";
 
 import {
   Bluetooth,
@@ -24,6 +25,7 @@ import "../../utils/i18n";
 export default function HomeScreen() {
   const [isConnected, setIsConnected] = useState(false);
   const [batteryLevel, setBatteryLevel] = useState(85);
+  const { user } = useAuth();
 
   const bluetoothService = BluetoothService.getInstance();
 
@@ -62,24 +64,26 @@ export default function HomeScreen() {
           {/* Grid Cards */}
           <View style={styles.gridContainer}>
             {/* Glove Status - Full Width */}
-            <TouchableOpacity style={styles.fullWidthCard}>
-              <View style={styles.cardContent}>
-                <View style={styles.cardIconContainer}>
-                  <Circle
-                    size={20}
-                    color={isConnected ? "#22C55E" : "#EF4444"}
-                    fill={isConnected ? "#22C55E" : "#EF4444"}
-                  />
+            {user?.user_type === "glove_user" && (
+              <TouchableOpacity style={styles.fullWidthCard}>
+                <View style={styles.cardContent}>
+                  <View style={styles.cardIconContainer}>
+                    <Circle
+                      size={20}
+                      color={isConnected ? "#22C55E" : "#EF4444"}
+                      fill={isConnected ? "#22C55E" : "#EF4444"}
+                    />
+                  </View>
+                  <View style={styles.cardTextContainer}>
+                    <Text style={styles.cardTitle}>Glove Status</Text>
+                    <Text style={styles.cardSubtitle}>
+                      {isConnected ? "Connected" : "Disconnected"}
+                    </Text>
+                  </View>
+                  <ChevronRight size={16} color="#6B7280" />
                 </View>
-                <View style={styles.cardTextContainer}>
-                  <Text style={styles.cardTitle}>Glove Status</Text>
-                  <Text style={styles.cardSubtitle}>
-                    {isConnected ? "Connected" : "Disconnected"}
-                  </Text>
-                </View>
-                <ChevronRight size={16} color="#6B7280" />
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            )}
 
             {/* First Row - Two Column Cards */}
             <View style={styles.row}>

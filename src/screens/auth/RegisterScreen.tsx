@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  TextInput,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../contexts/auth/AuthContext';
+import { UserType } from '../../types';
 import '../../utils/i18n';
 
 export default function RegisterScreen({ navigation }: any) {
@@ -23,6 +24,7 @@ export default function RegisterScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [userType, setUserType] = useState<UserType>('regular_user');
   const [errors, setErrors] = useState<any>({});
 
   const handleRegister = async () => {
@@ -48,7 +50,15 @@ export default function RegisterScreen({ navigation }: any) {
     clearError();
     
     try {
-      await register({ name, surname, username, email, password, confirmPassword });
+      await register({ 
+        name, 
+        surname, 
+        username, 
+        email, 
+        password, 
+        confirmPassword,
+        user_type: userType 
+      });
     } catch (error) {
       console.error('Register error:', error);
     }
@@ -108,6 +118,59 @@ export default function RegisterScreen({ navigation }: any) {
                   keyboardType="default"
                 />
                 {errors.surname && <Text style={styles.errorText}>{errors.surname}</Text>}
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>User Type</Text>
+                <View style={styles.userTypeContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.userTypeButton,
+                      userType === 'regular_user' && styles.userTypeButtonActive,
+                    ]}
+                    onPress={() => setUserType('regular_user')}
+                  >
+                    <View style={[
+                      styles.radioCircle,
+                      userType === 'regular_user' && styles.radioCircleActive,
+                    ]}>
+                      {userType === 'regular_user' && <View style={styles.radioDot} />}
+                    </View>
+                    <View style={styles.userTypeTextContainer}>
+                      <Text style={[
+                        styles.userTypeTitle,
+                        userType === 'regular_user' && styles.userTypeTitleActive,
+                      ]}>Regular User</Text>
+                      <Text style={styles.userTypeDescription}>
+                        Standard user account
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.userTypeButton,
+                      userType === 'glove_user' && styles.userTypeButtonActive,
+                    ]}
+                    onPress={() => setUserType('glove_user')}
+                  >
+                    <View style={[
+                      styles.radioCircle,
+                      userType === 'glove_user' && styles.radioCircleActive,
+                    ]}>
+                      {userType === 'glove_user' && <View style={styles.radioDot} />}
+                    </View>
+                    <View style={styles.userTypeTextContainer}>
+                      <Text style={[
+                        styles.userTypeTitle,
+                        userType === 'glove_user' && styles.userTypeTitleActive,
+                      ]}>Glove User</Text>
+                      <Text style={styles.userTypeDescription}>
+                        User with sign language glove
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <View style={styles.inputContainer}>
@@ -290,5 +353,56 @@ const styles = StyleSheet.create({
     color: '#f99f12',
     fontSize: 14,
     fontWeight: '500',
+  },
+  userTypeContainer: {
+    gap: 12,
+  },
+  userTypeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1F2937',
+    borderWidth: 2,
+    borderColor: '#374151',
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+  },
+  userTypeButtonActive: {
+    borderColor: '#FFC452',
+    backgroundColor: '#2D1F00',
+  },
+  radioCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#6B7280',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioCircleActive: {
+    borderColor: '#FFC452',
+  },
+  radioDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FFC452',
+  },
+  userTypeTextContainer: {
+    flex: 1,
+  },
+  userTypeTitle: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  userTypeTitleActive: {
+    color: '#FFC452',
+  },
+  userTypeDescription: {
+    color: '#9CA3AF',
+    fontSize: 14,
   },
 });

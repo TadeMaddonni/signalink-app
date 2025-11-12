@@ -1,4 +1,5 @@
 // User Types
+export type UserType = 'glove_user' | 'regular_user';
 export interface User {
   id: number;
   name: string;
@@ -9,6 +10,10 @@ export interface User {
   language?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  // Backend-aligned optional fields for conditional rendering
+  user_type?: UserType;
+  status?: string;
+  created_at?: string;
 }
 
 // Authentication Types
@@ -32,6 +37,7 @@ export interface RegisterCredentials {
   email: string;
   password: string;
   confirmPassword?: string;
+  user_type: UserType;
 }
 
 // API Response Types
@@ -132,7 +138,6 @@ export type OnboardingStackParamList = {
 
 export type TabParamList = {
   Home: undefined;
-  Chat: undefined;
   Explore: undefined;
   Groups: undefined;
   Profile: undefined;
@@ -219,6 +224,31 @@ export interface Member {
   username: string;
   email: string;
   profile_image?: string;
+}
+
+// Message Types (API-based)
+export interface Message {
+  id: string;
+  groupId: number;
+  senderId: number;
+  text: string;
+  type: string;
+  createdAt: string;
+  audio_url?: string | null;
+  duration?: number | null;
+}
+
+export interface CreateMessagePayload {
+  text: string;
+  type: string;
+}
+
+export interface GetMessagesResponse {
+  messages: Message[];
+}
+
+export interface CreateMessageResponse {
+  message: Message;
 }
 
 // Groups Navigation Types

@@ -1,23 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  ActivityIndicator,
-  TouchableOpacity,
-  Modal,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Plus, X } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import GroupCard from '../../components/ui/GroupCard';
+import { useAuth } from '../../contexts/auth/AuthContext';
 import GroupService from '../../services/group/GroupService';
 import { Group, GroupsStackParamList } from '../../types';
 import '../../utils/i18n';
@@ -27,41 +28,67 @@ type GroupsScreenNavigationProp = StackNavigationProp<GroupsStackParamList, 'Gro
 export default function GroupsScreen() {
   const { t } = useTranslation();
   const navigation = useNavigation<GroupsScreenNavigationProp>();
+  const { user } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Create group states
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  useEffect(() => {
-    loadGroups();
+  // Modal handlers
+  const handleOpenCreateModal = useCallback(() => {
+    setModalVisible(true);
   }, []);
 
-  const loadGroups = async () => {
+  const handleCloseCreateModal = useCallback(() => {
+    setModalVisible(false);
+    setGroupName('');
+  }, []);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadGroups();
+    }
+  }, [user?.id]); // Recargar cuando cambie el usuario
+
+  // Auto-refresh de grupos cada 2 segundos
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const interval = setInterval(() => {
+      loadGroups(false); // No mostrar loading en refrescos automáticos
+    }, 10000); // 10000ms = 2 segundos
+
+    // Limpiar el interval cuando el componente se desmonte
+    return () => clearInterval(interval);
+  }, [user?.id]);
+
+  const loadGroups = async (showLoading = true) => {
+    if (!user?.id) {
+      console.warn('⚠️ No hay usuario logueado');
+      return;
+    }
+
     try {
-      setIsLoading(true);
+      if (showLoading) {
+        setIsLoading(true);
+      }
       setError(null);
-      // TODO: Obtener el owner_id del usuario actual (por ahora hardcodeado a 4)
-      const ownerId = 4;
-      const fetchedGroups = await GroupService.getGroupsByOwner(ownerId);
+      console.log('📦 Cargando grupos para usuario:', user.id, user.name);
+      const fetchedGroups = await GroupService.getGroupsByUser(user.id);
       setGroups(fetchedGroups);
+      console.log('✅ Grupos cargados:', fetchedGroups.length);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar los grupos');
     } finally {
-      setIsLoading(false);
+      if (showLoading) {
+        setIsLoading(false);
+      }
     }
-  };
-
-  const handleOpenCreateModal = () => {
-    setShowCreateModal(true);
-  };
-
-  const handleCloseCreateModal = () => {
-    setShowCreateModal(false);
-    setGroupName('');
   };
 
   const handleCreateGroup = async () => {
@@ -70,11 +97,15 @@ export default function GroupsScreen() {
       return;
     }
 
+    if (!user?.id) {
+      Alert.alert(t('common.error'), 'No hay usuario logueado');
+      return;
+    }
+
     try {
       setIsCreating(true);
-      // TODO: Obtener el owner_id del usuario actual (por ahora hardcodeado a 4)
-      const ownerId = 4;
-      await GroupService.createGroup(groupName.trim(), ownerId);
+      console.log('➕ Creando grupo para usuario:', user.id, user.name);
+      await GroupService.createGroup(groupName.trim(), user.id);
 
       // Recargar la lista de grupos
       await loadGroups();
@@ -97,122 +128,139 @@ export default function GroupsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>{t('groups.title')}</Text>
-            <Text style={styles.subtitle}>
-              {t('groups.subtitle')}
-            </Text>
-          </View>
-
-          {/* Loading State */}
-          {isLoading && (
-            <View style={styles.centerContainer}>
-              <ActivityIndicator size="large" color="#f99f12" />
-              <Text style={styles.loadingText}>{t('groups.loading')}</Text>
-            </View>
-          )}
-
-          {/* Error State */}
-          {error && !isLoading && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          )}
-
-          {/* Groups List */}
-          {!isLoading && !error && groups.length > 0 && (
-            <View style={styles.groupsList}>
-              {groups.map((group) => (
-                <GroupCard
-                  key={group.id}
-                  groupId={group.id}
-                  owner={group.name}
-                  owner_username={group.owner_username}
-                  onPress={() => navigation.navigate('GroupDetail', {
-                    groupId: group.id,
-                    groupName: group.name,
-                    ownerUsername: group.owner_username,
-                  })}
-                />
-              ))}
-            </View>
-          )}
-
-          {/* Empty State */}
-          {!isLoading && !error && groups.length === 0 && (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{t('groups.empty')}</Text>
-              <Text style={styles.emptySubtext}>
-                {t('groups.emptySubtext')}
+      <View style={styles.innerContent}>
+        <ScrollView 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <View style={styles.content}>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.title}>{t('groups.title')}</Text>
+              <Text style={styles.subtitle}>
+                {t('groups.subtitle')}
               </Text>
             </View>
-          )}
-        </View>
-      </ScrollView>
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={handleOpenCreateModal}
-        activeOpacity={0.8}
-      >
-        <Plus size={28} color="#000000" />
-      </TouchableOpacity>
+            {/* Loading State */}
+            {isLoading && (
+              <View style={styles.centerContainer}>
+                <ActivityIndicator size="large" color="#f99f12" />
+                <Text style={styles.loadingText}>{t('groups.loading')}</Text>
+              </View>
+            )}
 
-      {/* Create Group Modal */}
-      <Modal
-        visible={showCreateModal}
-        transparent
-        animationType="slide"
-        onRequestClose={handleCloseCreateModal}
-      >
-        <KeyboardAvoidingView
-          style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <View style={styles.createModalContent}>
-            {/* Header */}
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('groups.newGroup')}</Text>
-              <TouchableOpacity onPress={handleCloseCreateModal}>
-                <X size={24} color="#9CA3AF" />
-              </TouchableOpacity>
-            </View>
+            {/* Error State */}
+            {error && !isLoading && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
 
-            {/* Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>{t('groups.groupName')}</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={t('groups.groupNamePlaceholder')}
-                placeholderTextColor="#9CA3AF"
-                value={groupName}
-                onChangeText={setGroupName}
-                autoFocus
-                maxLength={50}
-              />
-            </View>
+            {/* Groups List */}
+            {!isLoading && !error && groups.length > 0 && (
+              <View style={styles.groupsList}>
+                {groups.map((group) => (
+                  <GroupCard
+                    key={group.id}
+                    groupId={group.id}
+                    owner={group.name}
+                    owner_username={group.owner_username}
+                    onPress={() => navigation.navigate('GroupDetail', {
+                      groupId: group.id,
+                      groupName: group.name,
+                      ownerUsername: group.owner_username,
+                    })}
+                  />
+                ))}
+              </View>
+            )}
 
-            {/* Create Button */}
-            <TouchableOpacity
-              style={styles.createButton}
-              onPress={handleCreateGroup}
-              disabled={isCreating}
-            >
-              {isCreating ? (
-                <ActivityIndicator size="small" color="#000000" />
-              ) : (
-                <Text style={styles.createButtonText}>
-                  {t('groups.create')}
+            {/* Empty State */}
+            {!isLoading && !error && groups.length === 0 && (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>{t('groups.empty')}</Text>
+                <Text style={styles.emptySubtext}>
+                  {t('groups.emptySubtext')}
                 </Text>
-              )}
-            </TouchableOpacity>
+              </View>
+            )}
           </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        </ScrollView>
+
+        {/* Floating Action Button */}
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={handleOpenCreateModal}
+          activeOpacity={0.8}
+        >
+          <Plus size={28} color="#000000" />
+        </TouchableOpacity>
+
+        {/* Modal para crear grupo */}
+        <Modal
+          visible={modalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={handleCloseCreateModal}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.modalOverlay}
+          >
+            <View style={styles.modalContent}>
+              {/* Header */}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{t('groups.newGroup')}</Text>
+              </View>
+
+              {/* Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>{t('groups.groupName')}</Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    isInputFocused && styles.inputFocused
+                  ]}
+                  placeholder={t('groups.groupNamePlaceholder')}
+                  placeholderTextColor="#9CA3AF"
+                  value={groupName}
+                  onChangeText={setGroupName}
+                  onFocus={() => setIsInputFocused(true)}
+                  onBlur={() => setIsInputFocused(false)}
+                  autoFocus
+                  maxLength={50}
+                />
+              </View>
+
+              {/* Actions */}
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={handleCloseCreateModal}
+                >
+                  <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[
+                    styles.createButton,
+                    (!groupName.trim() || isCreating) && styles.createButtonDisabled
+                  ]}
+                  onPress={handleCreateGroup}
+                  disabled={isCreating || !groupName.trim()}
+                >
+                  {isCreating ? (
+                    <ActivityIndicator size="small" color="#000000" />
+                  ) : (
+                    <Text style={styles.createButtonText}>{t('groups.create')}</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
+      </View>
     </SafeAreaView>
   );
 }
@@ -221,6 +269,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
+  },
+  innerContent: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 100, // Espacio para la barra de navegación inferior
   },
   content: {
     paddingHorizontal: 24,
@@ -282,7 +336,7 @@ const styles = StyleSheet.create({
   // Floating Action Button
   fab: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 100, // Aumentado para evitar superposición con el menú inferior
     right: 24,
     width: 64,
     height: 64,
@@ -305,20 +359,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'flex-end',
   },
-  createModalContent: {
-    backgroundColor: '#1F2937',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-    borderWidth: 1,
-    borderColor: '#374151',
+  modalContent: {
+    backgroundColor: '#111111',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 32,
+    minHeight: '50%',
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 24,
+    alignItems: 'center',
   },
   modalTitle: {
     color: '#ffffff',
@@ -326,7 +378,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   inputContainer: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   inputLabel: {
     color: '#ffffff',
@@ -335,19 +387,51 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#374151',
+    backgroundColor: '#000000',
+    borderWidth: 0,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     color: '#ffffff',
     fontSize: 16,
   },
+  inputFocused: {
+    shadowColor: '#f99f12',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#374151',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButtonText: {
+    color: '#9CA3AF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   createButton: {
+    flex: 1,
     backgroundColor: '#f99f12',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  createButtonDisabled: {
+    backgroundColor: '#374151',
   },
   createButtonText: {
     color: '#000000',

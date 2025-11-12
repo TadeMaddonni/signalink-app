@@ -1,10 +1,10 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Compass, Home, MessageCircle, User, Users } from 'lucide-react-native';
+import { Compass, Home, User, Users } from 'lucide-react-native';
 import React from 'react';
-import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Platform } from 'react-native';
 
 import { AuthProvider, useAuth } from '../../contexts/auth/AuthContext';
 import '../../utils/i18n';
@@ -19,16 +19,15 @@ import ConnectGloveScreen from '../../screens/onboarding/ConnectGloveScreen';
 import HowItWorksScreen from '../../screens/onboarding/HowItWorksScreen';
 
 // Tab screens
-import ChatScreen from '../../screens/chat/ChatScreen';
 import ExploreScreen from '../../screens/explore/ExploreScreen';
-import GroupsScreen from '../../screens/group/GroupsScreen';
-import GroupDetailScreen from '../../screens/group/GroupDetailScreen';
 import EditGroupScreen from '../../screens/group/EditGroupScreen';
+import GroupDetailScreen from '../../screens/group/GroupDetailScreen';
+import GroupsScreen from '../../screens/group/GroupsScreen';
 import HomeScreen from '../../screens/home/HomeScreen';
 import ProfileScreen from '../../screens/profile/ProfileScreen';
 
 // Navigation types
-import { AuthStackParamList, OnboardingStackParamList, RootStackParamList, TabParamList, GroupsStackParamList } from '../../types';
+import { AuthStackParamList, GroupsStackParamList, OnboardingStackParamList, RootStackParamList, TabParamList } from '../../types';
 
 // Stack navigators
 const AuthStack = createStackNavigator<AuthStackParamList>();
@@ -84,8 +83,14 @@ function GroupsStackNavigator() {
 
 // Onboarding Stack
 function OnboardingStackNavigator() {
+  const { user } = useAuth();
+  
+  // regular_user ve solo BenefitsScreen, glove_user ve todo el flujo
+  const initialRouteName = user?.user_type === 'regular_user' ? 'Benefits' : 'ConnectGlove';
+  
   return (
     <OnboardingStack.Navigator
+      initialRouteName={initialRouteName}
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: '#000000' },
@@ -151,24 +156,40 @@ function TabNavigatorComponent() {
           ),
         }}
       />
-      <TabNavigator.Screen 
-        name="Chat" 
-        component={ChatScreen}
-        options={{
-          tabBarLabel: 'Chat',
-          tabBarIcon: ({ color }) => (
-            <MessageCircle size={24} color={color} />
-          ),
-        }}
-      />
       <TabNavigator.Screen
         name="Groups"
         component={GroupsStackNavigator}
-        options={{
-          tabBarLabel: t('groups.tabLabel'),
-          tabBarIcon: ({ color }) => (
-            <Users size={24} color={color} />
-          ),
+        options={({ route }: any) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? 'GroupsList';
+          
+          return {
+            tabBarLabel: t('groups.tabLabel'),
+            tabBarIcon: ({ color }) => (
+              <Users size={24} color={color} />
+            ),
+            tabBarStyle: routeName === 'GroupDetail' || routeName === 'EditGroup' 
+              ? { display: 'none' }
+              : {
+                backgroundColor: 'rgba(26, 26, 26, 0.8)',
+                borderTopWidth: 0,
+                height: Platform.OS === 'ios' ? 80 : 60,
+                paddingBottom: Platform.OS === 'ios' ? 8 : 8,
+                paddingTop: 8,
+                marginHorizontal: 16,
+                marginBottom: Platform.OS === 'ios' ? 20 : 10,
+                borderRadius: 35,
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 8,
+                position: 'absolute',
+                backdropFilter: 'blur(20px)',
+                ...(Platform.OS === 'ios' && {
+                  backgroundColor: 'rgba(26, 26, 26, 0.95)',
+                }),
+              },
+          };
         }}
       />
       <TabNavigator.Screen 
@@ -240,3 +261,4 @@ export function NavigationService() {
 
 // Export types
 export { AuthStackParamList, RootStackParamList, TabParamList };
+
