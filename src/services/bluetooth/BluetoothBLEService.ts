@@ -1,5 +1,24 @@
 import { PermissionsAndroid, Platform } from 'react-native';
-import { BleManager, Device, State } from 'react-native-ble-plx';
+import Constants from 'expo-constants';
+
+// Verificar si estamos en Expo Go
+const isExpoGo = Constants.appOwnership === 'expo';
+
+// Importación condicional de BLE solo si no estamos en Expo Go
+let BleManager: any = null;
+let Device: any = null;
+let State: any = null;
+
+try {
+  if (!isExpoGo) {
+    const bleModule = require('react-native-ble-plx');
+    BleManager = bleModule.BleManager;
+    Device = bleModule.Device;
+    State = bleModule.State;
+  }
+} catch (error) {
+  console.warn('⚠️ react-native-ble-plx no está disponible en Expo Go');
+}
 
 // Constantes para el guante SignaLink
 const GLOVE_SERVICE_UUID = '12345678-1234-5678-1234-56789abcdef0';
@@ -23,8 +42,8 @@ export interface BluetoothCallbacks {
 
 class BluetoothBLEService {
   private static instance: BluetoothBLEService;
-  private manager: BleManager;
-  private connectedDevice: Device | null = null;
+  private manager: any = null;
+  private connectedDevice: any = null;
   private callbacks: BluetoothCallbacks | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -32,8 +51,17 @@ class BluetoothBLEService {
   private isDestroyed = false;
 
   private constructor() {
-    this.manager = new BleManager();
-    this.setupManager();
+    try {
+      if (!isExpoGo && BleManager) {
+        this.manager = new BleManager();
+        this.setupManager();
+      } else {
+        console.warn('⚠️ Bluetooth no disponible en Expo Go');
+      }
+    } catch (error) {
+      console.error('❌ Error inicializando BLE Manager:', error);
+      this.manager = null;
+    }
   }
 
   public static getInstance(): BluetoothBLEService {
@@ -44,16 +72,22 @@ class BluetoothBLEService {
   }
 
   private setupManager() {
-    // Monitor del estado del Bluetooth
-    this.manager.onStateChange((state) => {
-      console.log(`📶 Estado Bluetooth: ${state}`);
-      if (state === State.PoweredOn) {
-        console.log('✅ Bluetooth listo');
-      } else if (state === State.PoweredOff) {
-        console.log('❌ Bluetooth desactivado');
-        this.callbacks?.onError('Bluetooth desactivado. Actívalo para continuar.');
-      }
-    }, true);
+    if (!this.manager) return;
+
+    try {
+      // Monitor del estado del Bluetooth
+      this.manager.onStateChange((state: any) => {
+        console.log(`📶 Estado Bluetooth: ${state}`);
+        if (state === State?.PoweredOn) {
+          console.log('✅ Bluetooth listo');
+        } else if (state === State?.PoweredOff) {
+          console.log('❌ Bluetooth desactivado');
+          this.callbacks?.onError('Bluetooth desactivado. Actívalo para continuar.');
+        }
+      }, true);
+    } catch (error) {
+      console.error('❌ Error configurando manager:', error);
+    }
   }
 
   /**
@@ -112,8 +146,13 @@ class BluetoothBLEService {
   /**
    * Inicia el escaneo del guante
    */
-  private startScan(): Promise<Device> {
+  private startScan(): Promise<any> {
     return new Promise((resolve, reject) => {
+      if (!this.manager) {
+        reject(new Error('BLE Manager no disponible'));
+        return;
+      }
+
       console.log('🔍 Iniciando escaneo del guante...');
       
       this.updateStatus({ isScanning: true });
@@ -128,7 +167,7 @@ class BluetoothBLEService {
       this.manager.startDeviceScan(
         [GLOVE_SERVICE_UUID], // Escanear solo nuestro servicio
         { allowDuplicates: false },
-        (error, device) => {
+        (error: any, device: any) => {
           if (error) {
             clearTimeout(scanTimeout);
             this.manager.stopDeviceScan();
