@@ -31,6 +31,10 @@ class TTSService {
       });
 
       console.log('📡 TTS Response status:', response.status);
+      console.log('📡 TTS Response headers:', {
+        contentType: response.headers.get('content-type'),
+        contentLength: response.headers.get('content-length'),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -38,18 +42,62 @@ class TTSService {
         throw new Error(`TTS API error: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
-      console.log('✅ TTS API response:', data);
+      // Check content type to see if it's JSON or raw audio
+      const contentType = response.headers.get('content-type');
+      console.log('📦 Content-Type recibido:', contentType);
 
-      if (!data.success || !data.data) {
-        throw new Error('TTS API did not return audio data');
+      let audioUri: string;
+
+      if (contentType?.includes('application/json')) {
+        // Response is JSON with base64 audio
+        const data = await response.json();
+        console.log('✅ TTS API response (JSON):', {
+          success: data.success,
+          hasData: !!data.data,
+          dataLength: data.data?.length,
+          dataPreview: data.data?.substring(0, 50) + '...'
+        });
+
+        if (!data.success || !data.data) {
+          throw new Error('TTS API did not return audio data');
+        }
+
+        // The API returns base64 encoded audio in data.data
+        const base64Audio = data.data;
+        audioUri = `data:audio/mp3;base64,${base64Audio}`;
+      } else if (contentType?.includes('audio/')) {
+        // Response is raw audio file (mp3, mpeg, etc)
+        console.log('🎵 Respuesta es audio directo (no JSON)');
+        const blob = await response.blob();
+        console.log('📦 Blob recibido:', {
+          size: blob.size,
+          type: blob.type
+        });
+
+        // Convert blob to base64
+        const reader = new FileReader();
+        const base64Audio = await new Promise<string>((resolve, reject) => {
+          reader.onloadend = () => {
+            const result = reader.result as string;
+            // Remove data URL prefix to get just the base64
+            const base64 = result.split(',')[1];
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+
+        console.log('✅ Audio convertido a base64:', {
+          length: base64Audio.length,
+          preview: base64Audio.substring(0, 50) + '...'
+        });
+
+        audioUri = `data:audio/mp3;base64,${base64Audio}`;
+      } else {
+        throw new Error(`Tipo de contenido no soportado: ${contentType}`);
       }
 
-      // The API returns base64 encoded audio in data.data
-      const base64Audio = data.data;
-
-      // Convert base64 to data URI for expo-av
-      const audioUri = `data:audio/mp3;base64,${base64Audio}`;
+      console.log('🎵 Audio URI preparado, longitud:', audioUri.length);
 
       // Configure audio mode
       await Audio.setAudioModeAsync({
