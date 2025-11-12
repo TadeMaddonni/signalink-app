@@ -10,6 +10,7 @@ import {
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../../contexts/auth/AuthContext';
 import { UserType } from '../../types';
@@ -17,6 +18,7 @@ import '../../utils/i18n';
 
 export default function RegisterScreen({ navigation }: any) {
   const { register, isLoading, error, clearError } = useAuth();
+  const { t } = useTranslation();
 
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
@@ -32,17 +34,17 @@ export default function RegisterScreen({ navigation }: any) {
   const handleRegister = async () => {
     // Simple validation
     const newErrors: any = {};
-    if (!name.trim()) newErrors.name = 'Name is required';
-    if (!surname.trim()) newErrors.surname = 'Surname is required';
-    if (!username.trim()) newErrors.username = 'Username is required';
-    else if (username.length < 3) newErrors.username = 'Username must be at least 3 characters';
-    if (!email) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Invalid email format';
-    if (!password) newErrors.password = 'Password is required';
-    else if (password.length < 6) newErrors.password = 'Password must be at least 6 characters';
-    if (!confirmPassword) newErrors.confirmPassword = 'Confirm password is required';
-    else if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
-    if (!language) newErrors.language = 'Language is required';
+    if (!name.trim()) newErrors.name = t('register.nameRequired');
+    if (!surname.trim()) newErrors.surname = t('register.surnameRequired');
+    if (!username.trim()) newErrors.username = t('register.usernameRequired');
+    else if (username.length < 3) newErrors.username = t('register.usernameTooShort');
+    if (!email) newErrors.email = t('register.emailRequired');
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = t('register.emailInvalid');
+    if (!password) newErrors.password = t('register.passwordRequired');
+    else if (password.length < 6) newErrors.password = t('register.passwordTooShort');
+    if (!confirmPassword) newErrors.confirmPassword = t('register.confirmPasswordRequired');
+    else if (password !== confirmPassword) newErrors.confirmPassword = t('register.passwordsMismatch');
+    if (!language) newErrors.language = t('register.languageRequired');
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -82,10 +84,10 @@ export default function RegisterScreen({ navigation }: any) {
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>
-              Create Account
+              {t('register.title')}
             </Text>
             <Text style={styles.subtitle}>
-              Join Signalink to communicate without barriers
+              {t('register.subtitle')}
             </Text>
           </View>
 
@@ -102,7 +104,7 @@ export default function RegisterScreen({ navigation }: any) {
 
             <View style={styles.inputContainer}>
               <View style={styles.inputParent}>
-                <Text style={styles.inputLabel}>Name</Text>
+                <Text style={styles.inputLabel}>{t('register.nameLabel')}</Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -111,9 +113,10 @@ export default function RegisterScreen({ navigation }: any) {
                   ]}
                   value={name}
                   onChangeText={setName}
-                  placeholder="Enter your first name"
+                  placeholder={t('register.namePlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   keyboardType="default"
+                  autoCapitalize="words"
                   onFocus={() => setFocusedInput('name')}
                   onBlur={() => setFocusedInput(null)}
                 />
@@ -121,7 +124,7 @@ export default function RegisterScreen({ navigation }: any) {
               </View>
 
               <View style={styles.inputParent}>
-                <Text style={styles.inputLabel}>Surname</Text>
+                <Text style={styles.inputLabel}>{t('register.surnameLabel')}</Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -130,9 +133,10 @@ export default function RegisterScreen({ navigation }: any) {
                   ]}
                   value={surname}
                   onChangeText={setSurname}
-                  placeholder="Enter your last name"
+                  placeholder={t('register.surnamePlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   keyboardType="default"
+                  autoCapitalize="words"
                   onFocus={() => setFocusedInput('surname')}
                   onBlur={() => setFocusedInput(null)}
                 />
@@ -140,7 +144,7 @@ export default function RegisterScreen({ navigation }: any) {
               </View>
 
               <View style={styles.inputParent}>
-                <Text style={styles.inputLabel}>User Type</Text>
+                <Text style={styles.inputLabel}>{t('register.userTypeLabel')}</Text>
                 <View style={styles.userTypeContainer}>
                   <TouchableOpacity
                     style={[
@@ -159,9 +163,9 @@ export default function RegisterScreen({ navigation }: any) {
                       <Text style={[
                         styles.userTypeTitle,
                         userType === 'regular_user' && styles.userTypeTitleActive,
-                      ]}>Regular User</Text>
+                      ]}>{t('register.regularUser')}</Text>
                       <Text style={styles.userTypeDescription}>
-                        Standard user account
+                        {t('register.regularUserDesc')}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -183,9 +187,9 @@ export default function RegisterScreen({ navigation }: any) {
                       <Text style={[
                         styles.userTypeTitle,
                         userType === 'glove_user' && styles.userTypeTitleActive,
-                      ]}>Glove User</Text>
+                      ]}>{t('register.gloveUser')}</Text>
                       <Text style={styles.userTypeDescription}>
-                        User with sign language glove
+                        {t('register.gloveUserDesc')}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -193,7 +197,7 @@ export default function RegisterScreen({ navigation }: any) {
               </View>
 
               <View style={styles.inputParent}>
-                <Text style={styles.inputLabel}>Username</Text>
+                <Text style={styles.inputLabel}>{t('register.usernameLabel')}</Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -202,9 +206,10 @@ export default function RegisterScreen({ navigation }: any) {
                   ]}
                   value={username}
                   onChangeText={setUsername}
-                  placeholder="Choose a username"
+                  placeholder={t('register.usernamePlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   keyboardType="default"
+                  autoCapitalize="none"
                   onFocus={() => setFocusedInput('username')}
                   onBlur={() => setFocusedInput(null)}
                 />
@@ -212,7 +217,7 @@ export default function RegisterScreen({ navigation }: any) {
               </View>
 
               <View style={styles.inputParent}>
-                <Text style={styles.inputLabel}>Email</Text>
+                <Text style={styles.inputLabel}>{t('register.emailLabel')}</Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -221,9 +226,10 @@ export default function RegisterScreen({ navigation }: any) {
                   ]}
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="Enter your email"
+                  placeholder={t('register.emailPlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   keyboardType="email-address"
+                  autoCapitalize="none"
                   onFocus={() => setFocusedInput('email')}
                   onBlur={() => setFocusedInput(null)}
                 />
@@ -231,7 +237,7 @@ export default function RegisterScreen({ navigation }: any) {
               </View>
 
               <View style={styles.inputParent}>
-                <Text style={styles.inputLabel}>Language</Text>
+                <Text style={styles.inputLabel}>{t('register.languageLabel')}</Text>
                 <View style={styles.languageSelector}>
                   <TouchableOpacity
                     style={[
@@ -244,7 +250,7 @@ export default function RegisterScreen({ navigation }: any) {
                       styles.languageButtonText,
                       language === 'en' && styles.languageButtonTextActive
                     ]}>
-                      English
+                      {t('register.english')}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -258,7 +264,7 @@ export default function RegisterScreen({ navigation }: any) {
                       styles.languageButtonText,
                       language === 'es' && styles.languageButtonTextActive
                     ]}>
-                      Español
+                      {t('register.spanish')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -266,7 +272,7 @@ export default function RegisterScreen({ navigation }: any) {
               </View>
 
               <View style={styles.inputParent}>
-                <Text style={styles.inputLabel}>Password</Text>
+                <Text style={styles.inputLabel}>{t('register.passwordLabel')}</Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -275,9 +281,12 @@ export default function RegisterScreen({ navigation }: any) {
                   ]}
                   value={password}
                   onChangeText={setPassword}
-                  placeholder="Enter your password"
+                  placeholder={t('register.passwordPlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={true}
+                  textContentType="newPassword"
+                  autoComplete="password-new"
+                  autoCapitalize="none"
                   onFocus={() => setFocusedInput('password')}
                   onBlur={() => setFocusedInput(null)}
                 />
@@ -285,7 +294,7 @@ export default function RegisterScreen({ navigation }: any) {
               </View>
 
               <View style={styles.inputParent}>
-                <Text style={styles.inputLabel}>Confirm Password</Text>
+                <Text style={styles.inputLabel}>{t('register.confirmPasswordLabel')}</Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -294,9 +303,12 @@ export default function RegisterScreen({ navigation }: any) {
                   ]}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  placeholder="Confirm your password"
+                  placeholder={t('register.confirmPasswordPlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={true}
+                  textContentType="newPassword"
+                  autoComplete="password-new"
+                  autoCapitalize="none"
                   onFocus={() => setFocusedInput('confirmPassword')}
                   onBlur={() => setFocusedInput(null)}
                 />
@@ -311,7 +323,7 @@ export default function RegisterScreen({ navigation }: any) {
                 disabled={isLoading}
               >
                 <Text style={styles.buttonText}>
-                  {isLoading ? 'Creating Account...' : 'Create Account'}
+                  {isLoading ? t('register.creatingAccount') : t('register.createAccount')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -319,11 +331,11 @@ export default function RegisterScreen({ navigation }: any) {
             <View>
               <View style={styles.linkContainer}>
                 <Text style={styles.linkText}>
-                  Already have an account?{' '}
+                  {t('register.haveAccount')}{' '}
                 </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                   <Text style={styles.linkHighlight}>
-                    Sign in
+                    {t('register.signIn')}
                   </Text>
                 </TouchableOpacity>
               </View>

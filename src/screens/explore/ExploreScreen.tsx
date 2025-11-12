@@ -14,23 +14,23 @@ export default function ExploreScreen() {
   const categories = [
     {
       icon: '👥',
-      title: 'Sign Language Community',
-      description: 'Connect with others learning sign language',
+      title: t('explore.communityTitle'),
+      description: t('explore.communityDesc'),
     },
     {
       icon: '🎓',
-      title: 'Learning Resources',
-      description: 'Practice and improve your signing skills',
+      title: t('explore.learningTitle'),
+      description: t('explore.learningDesc'),
     },
     {
       icon: '🏆',
-      title: 'Challenges & Games',
-      description: 'Engage with interactive sign language games',
+      title: t('explore.challengesTitle'),
+      description: t('explore.challengesDesc'),
     },
     {
       icon: '📖',
-      title: 'Sign Dictionary',
-      description: 'Browse our comprehensive sign library',
+      title: t('explore.dictionaryTitle'),
+      description: t('explore.dictionaryDesc'),
     },
   ];
 
@@ -62,10 +62,10 @@ export default function ExploreScreen() {
         <View className="px-6 pt-6">
           <Animated.View entering={FadeInDown.delay(100)}>
             <Text className="text-white text-2xl font-inter-medium mb-2">
-              Explore Signalink
+              {t('explore.title')}
             </Text>
             <Text className="text-gray-400 font-inter-light mb-6">
-              Discover features and resources to enhance your experience
+              {t('explore.subtitle')}
             </Text>
           </Animated.View>
 

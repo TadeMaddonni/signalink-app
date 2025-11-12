@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import Button from '../../components/ui/Button';
 import ProgressBar from '../../components/ui/ProgressBar';
@@ -15,23 +16,24 @@ import StepCard from '../../components/ui/StepCard';
 import '../../utils/i18n';
 
 export default function HowItWorksScreen({ navigation }: any) {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
     {
       icon: Hand,
-      title: 'Wear the Glove',
-      description: 'Put on the Signalink glove and ensure it\'s powered on',
+      title: t('onboarding.howItWorks.step1Title'),
+      description: t('onboarding.howItWorks.step1Desc'),
     },
     {
       icon: Smartphone,
-      title: 'Connect via Bluetooth',
-      description: 'Connect the glove to your phone via Bluetooth',
+      title: t('onboarding.howItWorks.step2Title'),
+      description: t('onboarding.howItWorks.step2Desc'),
     },
     {
       icon: Mic,
-      title: 'Start Signing',
-      description: 'Start signing and watch your gestures turn into speech',
+      title: t('onboarding.howItWorks.step3Title'),
+      description: t('onboarding.howItWorks.step3Desc'),
     },
   ];
 
@@ -66,10 +68,10 @@ export default function HowItWorksScreen({ navigation }: any) {
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>
-              How It Works
+              {t('onboarding.howItWorks.title')}
             </Text>
             <Text style={styles.subtitle}>
-              Learn how to use your Signalink glove in 3 simple steps
+              {t('onboarding.howItWorks.subtitle')}
             </Text>
           </View>
 
@@ -91,24 +93,24 @@ export default function HowItWorksScreen({ navigation }: any) {
           <View style={styles.buttonsContainer}>
             {/* Next Button */}
             <Button
-              title={currentStep === steps.length - 1 ? 'Continue' : 'Next'}
+              title={currentStep === steps.length - 1 ? t('onboarding.howItWorks.continueButton') : t('onboarding.howItWorks.nextButton')}
               onPress={handleNext}
               variant="filled"
             />
-            
+
             {/* Previous Button */}
             {currentStep > 0 && (
               <Button
-                title="Previous"
+                title={t('onboarding.howItWorks.previousButton')}
                 onPress={handlePrevious}
                 variant="outline"
               />
             )}
-            
+
             {/* Skip All */}
             <Button
               style={styles.skipButton}
-              title="Skip tutorial"
+              title={t('onboarding.howItWorks.skipTutorial')}
               onPress={handleSkip}
               variant="text"
             />

@@ -2,32 +2,31 @@ import { Check, Globe, Target, Zap } from "lucide-react-native";
 import React from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from 'react-i18next';
 
 import Button from "../../components/ui/Button";
 import { useAuth } from "../../contexts/auth/AuthContext";
 import "../../utils/i18n";
 
 export default function BenefitsScreen({ navigation }: any) {
+  const { t } = useTranslation();
   const { completeOnboarding } = useAuth();
 
   const features = [
     {
       icon: Zap,
-      title: "Real-Time Translation",
-      description:
-        "Get instant translation of your sign language gestures into spoken text.",
+      title: t('onboarding.benefits.feature1Title'),
+      description: t('onboarding.benefits.feature1Desc'),
     },
     {
       icon: Globe,
-      title: "Multi-Language Support",
-      description:
-        "Communicate in multiple languages and break language barriers.",
+      title: t('onboarding.benefits.feature2Title'),
+      description: t('onboarding.benefits.feature2Desc'),
     },
     {
       icon: Target,
-      title: "High Precision",
-      description:
-        "High-precision gesture recognition for accurate communication.",
+      title: t('onboarding.benefits.feature3Title'),
+      description: t('onboarding.benefits.feature3Desc'),
     },
   ];
 
@@ -50,9 +49,9 @@ export default function BenefitsScreen({ navigation }: any) {
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Why Signalink?</Text>
+            <Text style={styles.title}>{t('onboarding.benefits.title')}</Text>
             <Text style={styles.subtitle}>
-              Discover the features that make communication effortless
+              {t('onboarding.benefits.subtitle')}
             </Text>
           </View>
 
@@ -82,31 +81,31 @@ export default function BenefitsScreen({ navigation }: any) {
           {/* Additional Benefits */}
           <View style={styles.exclusiveCard}>
             <View style={styles.exclusiveTitleContainer}>
-              <Text style={styles.exclusiveTitle}>Exclusive Features</Text>
+              <Text style={styles.exclusiveTitle}>{t('onboarding.benefits.exclusiveFeatures')}</Text>
             </View>
             <View style={styles.exclusiveList}>
               <View style={styles.exclusiveItem}>
                 <Check size={16} color="#ffffff" />
                 <Text style={styles.exclusiveText}>
-                  Voice synthesis for audible communication
+                  {t('onboarding.benefits.voiceSynthesis')}
                 </Text>
               </View>
               <View style={styles.exclusiveItem}>
                 <Check size={16} color="#ffffff" />
                 <Text style={styles.exclusiveText}>
-                  Custom gesture learning and personalization
+                  {t('onboarding.benefits.customGestures')}
                 </Text>
               </View>
               <View style={styles.exclusiveItem}>
                 <Check size={16} color="#ffffff" />
                 <Text style={styles.exclusiveText}>
-                  Real-time chat integration
+                  {t('onboarding.benefits.realtimeChat')}
                 </Text>
               </View>
               <View style={styles.exclusiveItem}>
                 <Check size={16} color="#ffffff" />
                 <Text style={styles.exclusiveText}>
-                  Social features and community
+                  {t('onboarding.benefits.socialFeatures')}
                 </Text>
               </View>
             </View>
@@ -117,12 +116,12 @@ export default function BenefitsScreen({ navigation }: any) {
       {/* Fixed Bottom Button */}
       <View style={styles.fixedButtonContainer}>
         <Button
-          title="Get Started"
+          title={t('onboarding.benefits.getStarted')}
           onPress={handleGetStarted}
           variant="filled"
         />
 
-        <Button title="Continue later" onPress={handleSkip} variant="text" />
+        <Button title={t('onboarding.benefits.continueLater')} onPress={handleSkip} variant="text" />
       </View>
     </SafeAreaView>
   );

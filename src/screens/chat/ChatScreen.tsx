@@ -112,12 +112,12 @@ export default function ChatScreen() {
         {/* Header */}
         <Animated.View entering={FadeInDown.delay(100)} className="px-6 pt-4 pb-2">
           <Text className="text-white text-xl font-inter-medium mb-1">
-            Sign Language Chat
+            {t('chat.title')}
           </Text>
           <View className="flex-row items-center">
             <View className={`w-2 h-2 rounded-full mr-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
             <Text className="text-gray-400 font-inter-light text-sm">
-              {isConnected ? 'Connected' : 'Connecting...'}
+              {isConnected ? t('chat.connected') : t('chat.connecting')}
             </Text>
           </View>
         </Animated.View>
@@ -160,13 +160,13 @@ export default function ChatScreen() {
                   {message.translation && (
                     <View className="bg-primary-500/30 rounded-lg p-2 mb-2">
                       <Text className="text-primary-100 font-inter-light text-xs mb-1">
-                        Translation:
+                        {t('chat.translation')}
                       </Text>
                       <Text className="text-white font-inter-light text-sm">
                         {message.translation.text}
                       </Text>
                       <Text className="text-gray-400 font-inter-light text-xs mt-1">
-                        Confidence: {Math.round(message.translation.confidence * 100)}%
+                        {t('chat.confidence', { percent: Math.round(message.translation.confidence * 100) })}
                       </Text>
                     </View>
                   )}
@@ -175,10 +175,10 @@ export default function ChatScreen() {
                   {message.signData && (
                     <View className="bg-green-500/20 border border-green-500/30 rounded-lg p-2">
                       <Text className="text-green-200 font-inter-light text-xs mb-1">
-                        Gesture: {message.signData.gesture}
+                        {t('chat.gesture', { gesture: message.signData.gesture })}
                       </Text>
                       <Text className="text-gray-400 font-inter-light text-xs">
-                        Confidence: {Math.round(message.signData.confidence * 100)}%
+                        {t('chat.confidence', { percent: Math.round(message.signData.confidence * 100) })}
                       </Text>
                     </View>
                   )}
@@ -198,14 +198,15 @@ export default function ChatScreen() {
             <View className="flex-row items-center">
               <TextInput
                 className="flex-1 text-white font-inter-light p-3"
-                placeholder="Type a message..."
+                placeholder={t('chat.typePlaceholder')}
                 placeholderTextColor="#9CA3AF"
                 value={newMessage}
                 onChangeText={setNewMessage}
                 multiline
                 maxLength={500}
+                autoCapitalize="sentences"
               />
-              
+
               <TouchableOpacity
                 onPress={handleSendMessage}
                 className={`p-3 ml-2 rounded-full ${
@@ -213,15 +214,15 @@ export default function ChatScreen() {
                 }`}
                 disabled={!newMessage.trim()}
               >
-                <Text className="text-white">📤</Text>
+                <Text className="text-white">{t('chat.sendEmoji')}</Text>
               </TouchableOpacity>
             </View>
           </Card>
-          
+
           {/* Glove Mode Indicator */}
           <View className="mt-2 p-2 bg-primary-500/10 border border-primary-500/30 rounded-lg">
             <Text className="text-primary-200 font-inter-light text-xs text-center">
-              🖐️ Glove gestures will appear in chat automatically
+              {t('chat.gloveInfo')}
             </Text>
           </View>
         </Animated.View>

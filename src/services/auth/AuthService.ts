@@ -216,7 +216,11 @@ class AuthService {
 
         // Set i18n language based on saved user preference
         if (user.language) {
+          console.log('🌐 getCurrentUser - Cambiando idioma a:', user.language);
           await i18n.changeLanguage(user.language);
+          console.log('🌐 getCurrentUser - Idioma actual después del cambio:', i18n.language);
+        } else {
+          console.log('⚠️ getCurrentUser - Usuario no tiene campo language:', user);
         }
 
         return user;
