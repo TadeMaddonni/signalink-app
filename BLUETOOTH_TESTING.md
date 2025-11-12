@@ -152,4 +152,71 @@ Una implementación exitosa debe cumplir:
 - ✅ **Manejo de errores** con mensajes informativos
 - ✅ **Cleanup apropiado** al salir de la pantalla
 
+## 📱 Testeo Específico para iOS
+
+### Usando EAS Build (Recomendado para desarrollo)
+
+#### 1. Instalación del Build de Desarrollo
+
+Una vez que el build esté listo en EAS:
+
+1. **Descarga** el archivo `.ipa` desde la URL proporcionada por EAS
+2. **Instala** usando uno de estos métodos:
+   - **TestFlight**: Sube el build a TestFlight para distribución interna
+   - **Apple Configurator 2**: Para instalación directa en dispositivos registrados
+   - **Diawi/InstallOnAir**: Para distribución ad-hoc
+
+#### 2. Permisos en iOS
+
+Al abrir la app por primera vez:
+
+1. **Permitir notificaciones** (opcional)
+2. **Permitir Bluetooth** - aparecerá automáticamente cuando uses el BLE
+   - Mensaje: _"Esta app usa Bluetooth para conectarse al guante SignaLink y recibir gestos en tiempo real."_
+
+#### 3. Configuración del Dispositivo iOS
+
+1. **Activar Bluetooth** en Configuración > Bluetooth
+2. **No** es necesario emparejar manualmente el guante
+3. La app manejará la conexión BLE automáticamente
+
+#### 4. Debugging en iOS
+
+Para ver logs de debug en iOS:
+
+```bash
+# Si tienes Xcode instalado (en Mac)
+xcrun simctl spawn booted log stream --predicate 'processImagePath contains "SignaLink"'
+
+# O usar la consola de Expo
+npx expo start --dev-client
+```
+
+#### 5. Troubleshooting Específico iOS
+
+**Problema**: _"Bluetooth permission denied"_
+
+- **Solución**: Ir a Configuración > Privacidad > Bluetooth > SignaLink y activar
+
+**Problema**: _"No se conecta al guante"_
+
+- **Solución**: Verificar que el guante no esté conectado a otros dispositivos
+- Reiniciar Bluetooth: Configuración > General > Transferir o Restablecer iPhone > Restablecer > Restablecer configuración de red
+
+**Problema**: _"Build no instala"_
+
+- **Solución**: Verificar que el dispositivo esté registrado en el Developer Portal de Apple
+
+### Usando Expo Go (Limitado - Solo para desarrollo UI)
+
+⚠️ **Importante**: `react-native-ble-plx` NO funciona con Expo Go. Necesitas un build personalizado.
+
+Para testear solo la UI sin funcionalidad BLE:
+
+```bash
+npx expo start
+```
+
+Escanea el QR con la app Expo Go, pero la conexión Bluetooth no funcionará.
+
 ¡Con esta configuración, tu app SignaLink estará lista para recibir gestos del guante en tiempo real! 🎉

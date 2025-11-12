@@ -18,6 +18,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BluetoothModal } from '../../components/ui/BluetoothModal';
 import { useAuth } from '../../contexts/auth/AuthContext';
 import { useAudioTranscription } from '../../hooks/useAudioTranscription';
 import { useBluetoothGlove } from '../../hooks/useBluetoothGlove';
@@ -39,6 +40,7 @@ export default function GroupDetailScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [showBluetoothModal, setShowBluetoothModal] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const messageService = MessageService.getInstance();
@@ -227,21 +229,35 @@ export default function GroupDetailScreen() {
     // Validar que el usuario esté logueado
     if (!user?.id) {
       console.error('❌ No hay usuario logueado');
-      alert('Debes iniciar sesión para usar el guante');
+      alert('Debes iniciar sesión para usar esta funcionalidad');
       return;
     }
     
-    // Si ya está conectado, desconectar
-    if (isGloveConnected) {
-      console.log('🔌 Desconectando del guante...');
-      await disconnectFromGlove();
-      return;
+    // Para usuarios de guante: manejar conexión Bluetooth
+    if (user?.user_type === 'glove_user') {
+      // Si ya está conectado, desconectar
+      if (isGloveConnected) {
+        console.log('🔌 Desconectando del guante...');
+        await disconnectFromGlove();
+        return;
+      }
+      
+      // Si no está conectado, abrir modal de conexión
+      console.log('🧤 Abriendo modal de conexión Bluetooth...');
+      setShowBluetoothModal(true);
+    } else {
+      // Para usuarios regulares: manejar grabación de audio
+      if (audioTranscription.isRecording) {
+        audioTranscription.stopRecording();
+      } else {
+        audioTranscription.startRecording();
+      }
     }
-    
-    // Si no está conectado, intentar conectar
-    console.log('🧤 Conectando al guante...');
-    clearError(); // Limpiar errores previos
-    await connectToGlove();
+  };
+
+  const handleBluetoothDeviceConnected = () => {
+    console.log('✅ Dispositivo Bluetooth conectado exitosamente');
+    setShowBluetoothModal(false);
   };
 
 
@@ -521,6 +537,13 @@ export default function GroupDetailScreen() {
           </View>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
+
+      {/* Modal de conexión Bluetooth */}
+      <BluetoothModal
+        visible={showBluetoothModal}
+        onClose={() => setShowBluetoothModal(false)}
+        onDeviceConnected={handleBluetoothDeviceConnected}
+      />
     </SafeAreaView>
   );
 }

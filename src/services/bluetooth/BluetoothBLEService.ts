@@ -28,7 +28,7 @@ class BluetoothBLEService {
   private callbacks: BluetoothCallbacks | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
-  private reconnectTimeout: NodeJS.Timeout | null = null;
+  private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private isDestroyed = false;
 
   private constructor() {
@@ -148,8 +148,8 @@ class BluetoothBLEService {
             this.manager.stopDeviceScan();
             this.updateStatus({ 
               isScanning: false, 
-              deviceName: device.name || device.localName,
-              rssi: device.rssi 
+              deviceName: device.name || device.localName || undefined,
+              rssi: device.rssi || undefined 
             });
             resolve(device);
           }
@@ -383,7 +383,7 @@ class BluetoothBLEService {
       isConnecting: false,
       isConnected: !!this.connectedDevice,
       isScanning: false,
-      deviceName: this.connectedDevice?.name,
+      deviceName: this.connectedDevice?.name || undefined,
     };
   }
 
