@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from 'react-i18next';
 
 import { CheckCircle } from "lucide-react-native";
 import Button from "../../components/ui/Button";
@@ -14,6 +15,7 @@ import { BluetoothService } from "../../services/bluetooth/BluetoothService";
 import "../../utils/i18n";
 
 export default function ConnectGloveScreen({ navigation }: any) {
+  const { t } = useTranslation();
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -55,10 +57,9 @@ export default function ConnectGloveScreen({ navigation }: any) {
         <View style={styles.textContent}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Connect Your Glove</Text>
+            <Text style={styles.title}>{t('onboarding.connectGlove.title')}</Text>
             <Text style={styles.subtitle}>
-              Turn on your Signalink glove and tap the button below to connect
-              via Bluetooth
+              {t('onboarding.connectGlove.subtitle')}
             </Text>
           </View>
         </View>
@@ -82,7 +83,7 @@ export default function ConnectGloveScreen({ navigation }: any) {
                 <View style={styles.successContent}>
                   <CheckCircle size={20} color="#86EFAC" />
                   <Text style={styles.successText}>
-                    Glove Connected Successfully!
+                    {t('onboarding.connectGlove.successMessage')}
                   </Text>
                 </View>
               </View>
@@ -92,17 +93,17 @@ export default function ConnectGloveScreen({ navigation }: any) {
             <View style={styles.buttonsContainer}>
               <Button
                 title={isConnecting
-                  ? "Connecting..."
+                  ? t('onboarding.connectGlove.connecting')
                   : isConnected
-                  ? "Connected"
-                  : "Connect Glove"}
+                  ? t('onboarding.connectGlove.connected')
+                  : t('onboarding.connectGlove.connectButton')}
                 onPress={handleConnectGlove}
                 variant="filled"
                 disabled={isConnecting || isConnected}
               />
 
               <Button
-                title="Skip for now"
+                title={t('onboarding.connectGlove.skipButton')}
                 onPress={handleSkipConnection}
                 variant="text"
                 disabled={isConnecting}

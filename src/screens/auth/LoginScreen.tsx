@@ -10,13 +10,15 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../../contexts/auth/AuthContext';
 import '../../utils/i18n';
 
 export default function LoginScreen({ navigation }: any) {
+  const { t } = useTranslation();
   const { login, loginAsGuest, isLoading, error, clearError } = useAuth();
-  
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<any>({});
@@ -25,8 +27,8 @@ export default function LoginScreen({ navigation }: any) {
   const handleLogin = async () => {
     // Simple validation
     const newErrors: any = {};
-    if (!username) newErrors.username = 'Username is required';
-    if (!password) newErrors.password = 'Password is required';
+    if (!username) newErrors.username = t('login.usernameRequired');
+    if (!password) newErrors.password = t('login.passwordRequired');
     
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -65,10 +67,10 @@ export default function LoginScreen({ navigation }: any) {
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>
-              Welcome Back
+              {t('login.title')}
             </Text>
             <Text style={styles.subtitle}>
-              Sign in to continue with Signalink
+              {t('login.subtitle')}
             </Text>
           </View>
 
@@ -85,18 +87,19 @@ export default function LoginScreen({ navigation }: any) {
 
             <View style={styles.inputContainer}>
               <View style={styles.inputParent}>
-                <Text style={styles.inputLabel}>Username</Text>
+                <Text style={styles.inputLabel}>{t('login.usernameLabel')}</Text>
                 <TextInput
                   style={[
-                    styles.input, 
+                    styles.input,
                     errors.username && styles.inputError,
                     focusedInput === 'username' && styles.inputFocused
                   ]}
                   value={username}
                   onChangeText={setUsername}
-                  placeholder="Enter your username"
+                  placeholder={t('login.usernamePlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   keyboardType="default"
+                  autoCapitalize="none"
                   onFocus={() => setFocusedInput('username')}
                   onBlur={() => setFocusedInput(null)}
                 />
@@ -104,18 +107,19 @@ export default function LoginScreen({ navigation }: any) {
               </View>
 
               <View style={styles.inputParent}>
-                <Text style={styles.inputLabel}>Password</Text>
+                <Text style={styles.inputLabel}>{t('login.passwordLabel')}</Text>
                 <TextInput
                   style={[
-                    styles.input, 
+                    styles.input,
                     errors.password && styles.inputError,
                     focusedInput === 'password' && styles.inputFocused
                   ]}
                   value={password}
                   onChangeText={setPassword}
-                  placeholder="Enter your password"
+                  placeholder={t('login.passwordPlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={true}
+                  autoCapitalize="none"
                   onFocus={() => setFocusedInput('password')}
                   onBlur={() => setFocusedInput(null)}
                 />
@@ -130,7 +134,7 @@ export default function LoginScreen({ navigation }: any) {
                 disabled={isLoading}
               >
                 <Text style={styles.buttonText}>
-                  {isLoading ? 'Signing In...' : 'Sign In'}
+                  {isLoading ? t('login.signingIn') : t('login.signIn')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -138,19 +142,19 @@ export default function LoginScreen({ navigation }: any) {
             <View>
               <View style={styles.linkContainer}>
                 <Text style={styles.linkText}>
-                  Don't have an account?{' '}
+                  {t('login.noAccount')}
                 </Text>
                 <TouchableOpacity onPress={navigateToRegister}>
                   <Text style={styles.linkHighlight}>
-                    Sign up
+                    {t('login.signUp')}
                   </Text>
                 </TouchableOpacity>
               </View>
-              
+
               <View style={styles.guestContainer}>
                 <TouchableOpacity onPress={handleGuestLogin}>
                   <Text style={styles.guestText}>
-                    Continuar como invitado
+                    {t('login.continueAsGuest')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -158,9 +162,7 @@ export default function LoginScreen({ navigation }: any) {
 
             <View style={styles.demoCard}>
               <Text style={styles.demoText}>
-                Demo credentials:{'\n'}
-                Username: testuser{'\n'}
-                Password: 123456
+                {t('login.demoCredentials')}
               </Text>
             </View>
           </View>

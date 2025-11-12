@@ -3,6 +3,7 @@ import React, { createContext, ReactNode, useContext, useEffect, useReducer } fr
 import AuthService from '../../services/auth/AuthService';
 import UserService from '../../services/user';
 import { AuthState, LoginCredentials, RegisterCredentials, User } from '../../types';
+import i18n from '../../utils/i18n';
 
 // Auth Actions
 type AuthAction =
@@ -153,6 +154,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await AuthService.logout();
       console.log('👋 Logout - Usuario eliminado del contexto');
+
+      // Reset language to default (English) on logout
+      await i18n.changeLanguage('en');
+      console.log('🌐 Idioma restablecido a inglés después del logout');
+
       dispatch({ type: 'LOGOUT' });
     } catch (error) {
       console.error('Error during logout:', error);
@@ -176,6 +182,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await AsyncStorage.setItem('auth_token', token);
       }
       await AsyncStorage.setItem('user', JSON.stringify(updated));
+
+      // Set i18n language based on updated user preference
+      if (updated.language) {
+        await i18n.changeLanguage(updated.language);
+        console.log('🌐 Idioma configurado desde refreshUser:', updated.language);
+      }
+
       dispatch({ type: 'LOGIN_SUCCESS', payload: updated });
     } catch (error) {
       console.error('Error refreshing user:', error);

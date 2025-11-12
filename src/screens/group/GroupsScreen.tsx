@@ -98,7 +98,7 @@ export default function GroupsScreen() {
     }
 
     if (!user?.id) {
-      Alert.alert(t('common.error'), 'No hay usuario logueado');
+      Alert.alert(t('common.error'), t('groups.noUserLogged'));
       return;
     }
 
@@ -230,6 +230,7 @@ export default function GroupsScreen() {
                   onBlur={() => setIsInputFocused(false)}
                   autoFocus
                   maxLength={50}
+                  autoCapitalize="sentences"
                 />
               </View>
 

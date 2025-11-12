@@ -10,6 +10,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../../contexts/auth/AuthContext';
 import { UserType } from '../../types';
@@ -17,47 +18,52 @@ import '../../utils/i18n';
 
 export default function RegisterScreen({ navigation }: any) {
   const { register, isLoading, error, clearError } = useAuth();
-  
+  const { t } = useTranslation();
+
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [language, setLanguage] = useState('en');
   const [userType, setUserType] = useState<UserType>('regular_user');
   const [errors, setErrors] = useState<any>({});
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   const handleRegister = async () => {
     // Simple validation
     const newErrors: any = {};
-    if (!name.trim()) newErrors.name = 'Name is required';
-    if (!surname.trim()) newErrors.surname = 'Surname is required';
-    if (!username.trim()) newErrors.username = 'Username is required';
-    else if (username.length < 3) newErrors.username = 'Username must be at least 3 characters';
-    if (!email) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Invalid email format';
-    if (!password) newErrors.password = 'Password is required';
-    else if (password.length < 6) newErrors.password = 'Password must be at least 6 characters';
-    if (!confirmPassword) newErrors.confirmPassword = 'Confirm password is required';
-    else if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
-    
+    if (!name.trim()) newErrors.name = t('register.nameRequired');
+    if (!surname.trim()) newErrors.surname = t('register.surnameRequired');
+    if (!username.trim()) newErrors.username = t('register.usernameRequired');
+    else if (username.length < 3) newErrors.username = t('register.usernameTooShort');
+    if (!email) newErrors.email = t('register.emailRequired');
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = t('register.emailInvalid');
+    if (!password) newErrors.password = t('register.passwordRequired');
+    else if (password.length < 6) newErrors.password = t('register.passwordTooShort');
+    if (!confirmPassword) newErrors.confirmPassword = t('register.confirmPasswordRequired');
+    else if (password !== confirmPassword) newErrors.confirmPassword = t('register.passwordsMismatch');
+    if (!language) newErrors.language = t('register.languageRequired');
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    
+
     setErrors({});
     clearError();
-    
+
     try {
-      await register({ 
-        name, 
-        surname, 
-        username, 
-        email, 
-        password, 
+      await register({
+        name,
+        surname,
+        username,
+        email,
+        password,
         confirmPassword,
-        user_type: userType 
+        language,
+        user_type: userType
       });
     } catch (error) {
       console.error('Register error:', error);
@@ -75,15 +81,18 @@ export default function RegisterScreen({ navigation }: any) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>
+              {t('register.title')}
+            </Text>
+            <Text style={styles.subtitle}>
+              {t('register.subtitle')}
+            </Text>
+          </View>
+
+          {/* Form */}
           <View style={styles.form}>
-            <View>
-              <Text style={styles.title}>
-                Create Account
-              </Text>
-              <Text style={styles.subtitle}>
-                Join Signalink to communicate without barriers
-              </Text>
-            </View>
 
             {error && (
               <View style={styles.errorContainer}>
@@ -93,35 +102,49 @@ export default function RegisterScreen({ navigation }: any) {
               </View>
             )}
 
-            <View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Name</Text>
+            <View style={styles.inputContainer}>
+              <View style={styles.inputParent}>
+                <Text style={styles.inputLabel}>{t('register.nameLabel')}</Text>
                 <TextInput
-                  style={[styles.input, errors.name && styles.inputError]}
+                  style={[
+                    styles.input,
+                    errors.name && styles.inputError,
+                    focusedInput === 'name' && styles.inputFocused
+                  ]}
                   value={name}
                   onChangeText={setName}
-                  placeholder="Enter your first name"
+                  placeholder={t('register.namePlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   keyboardType="default"
+                  autoCapitalize="words"
+                  onFocus={() => setFocusedInput('name')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
               </View>
 
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Surname</Text>
+              <View style={styles.inputParent}>
+                <Text style={styles.inputLabel}>{t('register.surnameLabel')}</Text>
                 <TextInput
-                  style={[styles.input, errors.surname && styles.inputError]}
+                  style={[
+                    styles.input,
+                    errors.surname && styles.inputError,
+                    focusedInput === 'surname' && styles.inputFocused
+                  ]}
                   value={surname}
                   onChangeText={setSurname}
-                  placeholder="Enter your last name"
+                  placeholder={t('register.surnamePlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   keyboardType="default"
+                  autoCapitalize="words"
+                  onFocus={() => setFocusedInput('surname')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.surname && <Text style={styles.errorText}>{errors.surname}</Text>}
               </View>
 
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>User Type</Text>
+              <View style={styles.inputParent}>
+                <Text style={styles.inputLabel}>{t('register.userTypeLabel')}</Text>
                 <View style={styles.userTypeContainer}>
                   <TouchableOpacity
                     style={[
@@ -140,9 +163,9 @@ export default function RegisterScreen({ navigation }: any) {
                       <Text style={[
                         styles.userTypeTitle,
                         userType === 'regular_user' && styles.userTypeTitleActive,
-                      ]}>Regular User</Text>
+                      ]}>{t('register.regularUser')}</Text>
                       <Text style={styles.userTypeDescription}>
-                        Standard user account
+                        {t('register.regularUserDesc')}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -164,63 +187,130 @@ export default function RegisterScreen({ navigation }: any) {
                       <Text style={[
                         styles.userTypeTitle,
                         userType === 'glove_user' && styles.userTypeTitleActive,
-                      ]}>Glove User</Text>
+                      ]}>{t('register.gloveUser')}</Text>
                       <Text style={styles.userTypeDescription}>
-                        User with sign language glove
+                        {t('register.gloveUserDesc')}
                       </Text>
                     </View>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Username</Text>
+              <View style={styles.inputParent}>
+                <Text style={styles.inputLabel}>{t('register.usernameLabel')}</Text>
                 <TextInput
-                  style={[styles.input, errors.username && styles.inputError]}
+                  style={[
+                    styles.input,
+                    errors.username && styles.inputError,
+                    focusedInput === 'username' && styles.inputFocused
+                  ]}
                   value={username}
                   onChangeText={setUsername}
-                  placeholder="Choose a username"
+                  placeholder={t('register.usernamePlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   keyboardType="default"
+                  autoCapitalize="none"
+                  onFocus={() => setFocusedInput('username')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
               </View>
 
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Email</Text>
+              <View style={styles.inputParent}>
+                <Text style={styles.inputLabel}>{t('register.emailLabel')}</Text>
                 <TextInput
-                  style={[styles.input, errors.email && styles.inputError]}
+                  style={[
+                    styles.input,
+                    errors.email && styles.inputError,
+                    focusedInput === 'email' && styles.inputFocused
+                  ]}
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="Enter your email"
+                  placeholder={t('register.emailPlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   keyboardType="email-address"
+                  autoCapitalize="none"
+                  onFocus={() => setFocusedInput('email')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
               </View>
 
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Password</Text>
+              <View style={styles.inputParent}>
+                <Text style={styles.inputLabel}>{t('register.languageLabel')}</Text>
+                <View style={styles.languageSelector}>
+                  <TouchableOpacity
+                    style={[
+                      styles.languageButton,
+                      language === 'en' && styles.languageButtonActive
+                    ]}
+                    onPress={() => setLanguage('en')}
+                  >
+                    <Text style={[
+                      styles.languageButtonText,
+                      language === 'en' && styles.languageButtonTextActive
+                    ]}>
+                      {t('register.english')}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.languageButton,
+                      language === 'es' && styles.languageButtonActive
+                    ]}
+                    onPress={() => setLanguage('es')}
+                  >
+                    <Text style={[
+                      styles.languageButtonText,
+                      language === 'es' && styles.languageButtonTextActive
+                    ]}>
+                      {t('register.spanish')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                {errors.language && <Text style={styles.errorText}>{errors.language}</Text>}
+              </View>
+
+              <View style={styles.inputParent}>
+                <Text style={styles.inputLabel}>{t('register.passwordLabel')}</Text>
                 <TextInput
-                  style={[styles.input, errors.password && styles.inputError]}
+                  style={[
+                    styles.input,
+                    errors.password && styles.inputError,
+                    focusedInput === 'password' && styles.inputFocused
+                  ]}
                   value={password}
                   onChangeText={setPassword}
-                  placeholder="Enter your password"
+                  placeholder={t('register.passwordPlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={true}
+                  textContentType="newPassword"
+                  autoComplete="password-new"
+                  autoCapitalize="none"
+                  onFocus={() => setFocusedInput('password')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
               </View>
 
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Confirm Password</Text>
+              <View style={styles.inputParent}>
+                <Text style={styles.inputLabel}>{t('register.confirmPasswordLabel')}</Text>
                 <TextInput
-                  style={[styles.input, errors.confirmPassword && styles.inputError]}
+                  style={[
+                    styles.input,
+                    errors.confirmPassword && styles.inputError,
+                    focusedInput === 'confirmPassword' && styles.inputFocused
+                  ]}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  placeholder="Confirm your password"
+                  placeholder={t('register.confirmPasswordPlaceholder')}
                   placeholderTextColor="#9CA3AF"
                   secureTextEntry={true}
+                  textContentType="newPassword"
+                  autoComplete="password-new"
+                  autoCapitalize="none"
+                  onFocus={() => setFocusedInput('confirmPassword')}
+                  onBlur={() => setFocusedInput(null)}
                 />
                 {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
               </View>
@@ -233,7 +323,7 @@ export default function RegisterScreen({ navigation }: any) {
                 disabled={isLoading}
               >
                 <Text style={styles.buttonText}>
-                  {isLoading ? 'Creating Account...' : 'Create Account'}
+                  {isLoading ? t('register.creatingAccount') : t('register.createAccount')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -241,11 +331,11 @@ export default function RegisterScreen({ navigation }: any) {
             <View>
               <View style={styles.linkContainer}>
                 <Text style={styles.linkText}>
-                  Already have an account?{' '}
+                  {t('register.haveAccount')}{' '}
                 </Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                   <Text style={styles.linkHighlight}>
-                    Sign in
+                    {t('register.signIn')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -264,7 +354,13 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+  },
+  header: {
+    marginTop: 24,
+    marginBottom: 32,
+    paddingHorizontal: 24,
+    alignItems: 'flex-start',
   },
   form: {
     paddingHorizontal: 24,
@@ -272,13 +368,19 @@ const styles = StyleSheet.create({
   title: {
     color: '#ffffff',
     fontSize: 32,
-    fontWeight: '600',
-    marginBottom: 8,
+    fontWeight: '700',
+    marginBottom: 12,
+    textAlign: 'left',
+    textShadowColor: '#d2981d',
+    textShadowOffset: { width: 0, height: 0.4 },
+    textShadowRadius: 12,
   },
   subtitle: {
-    color: '#9CA3AF',
-    fontSize: 16,
-    marginBottom: 32,
+    color: '#D1D5DB',
+    fontSize: 18,
+    lineHeight: 26,
+    textAlign: 'left',
+    opacity: 0.9,
   },
   errorContainer: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -294,22 +396,44 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   inputContainer: {
-    marginBottom: 16,
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 32,
+  },
+  inputParent: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 8,
   },
   inputLabel: {
     color: '#ffffff',
     fontSize: 16,
+    fontWeight: '600',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#374151',
+    backgroundColor: '#111111',
     borderWidth: 1,
-    borderColor: '#4B5563',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderColor: '#111111',
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    width: '100%',
     color: '#ffffff',
     fontSize: 16,
+    minHeight: 56,
+  },
+  inputFocused: {
+    borderColor: '#f99f12',
+    shadowColor: '#f99f12',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   inputError: {
     borderColor: '#EF4444',
@@ -325,7 +449,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 48,
     shadowColor: '#f99f12',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.55,
@@ -354,40 +478,83 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
+  languageSelector: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 12,
+  },
+  languageButton: {
+    flex: 1,
+    backgroundColor: '#111111',
+    borderWidth: 1,
+    borderColor: '#111111',
+    borderRadius: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    minHeight: 56,
+    justifyContent: 'center',
+  },
+  languageButtonActive: {
+    backgroundColor: '#f99f12',
+    borderColor: '#f99f12',
+    shadowColor: '#f99f12',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  languageButtonText: {
+    color: '#9CA3AF',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  languageButtonTextActive: {
+    color: '#000000',
+    fontWeight: '600',
+  },
   userTypeContainer: {
     gap: 12,
+    width: '100%',
   },
   userTypeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1F2937',
-    borderWidth: 2,
-    borderColor: '#374151',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: '#111111',
+    borderWidth: 1,
+    borderColor: '#111111',
+    borderRadius: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     gap: 12,
+    minHeight: 56,
   },
   userTypeButtonActive: {
-    borderColor: '#FFC452',
-    backgroundColor: '#2D1F00',
+    borderColor: '#f99f12',
+    backgroundColor: '#111111',
+    shadowColor: '#f99f12',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   radioCircle: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#6B7280',
+    borderColor: '#4B5563',
     alignItems: 'center',
     justifyContent: 'center',
   },
   radioCircleActive: {
-    borderColor: '#FFC452',
+    borderColor: '#f99f12',
   },
   radioDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#FFC452',
+    backgroundColor: '#f99f12',
   },
   userTypeTextContainer: {
     flex: 1,
@@ -399,7 +566,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   userTypeTitleActive: {
-    color: '#FFC452',
+    color: '#f99f12',
   },
   userTypeDescription: {
     color: '#9CA3AF',

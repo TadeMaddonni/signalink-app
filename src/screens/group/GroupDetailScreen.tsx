@@ -1,10 +1,12 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { ArrowLeft, Hand, Mic, Send, Square, Volume2 } from 'lucide-react-native';
 import { ArrowLeft, Bluetooth, Hand, Mic, Send, Square } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -23,6 +25,7 @@ import { useAuth } from '../../contexts/auth/AuthContext';
 import { useAudioTranscription } from '../../hooks/useAudioTranscription';
 import { useBluetoothGlove } from '../../hooks/useBluetoothGlove';
 import { MessageService } from '../../services/message';
+import TTSService from '../../services/tts/TTSService';
 import { GroupsStackParamList, Message } from '../../types';
 import '../../utils/i18n';
 
@@ -40,6 +43,7 @@ export default function GroupDetailScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [playingMessageId, setPlayingMessageId] = useState<number | null>(null);
   const [showBluetoothModal, setShowBluetoothModal] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -182,15 +186,15 @@ export default function GroupDetailScreen() {
     try {
       setIsSending(true);
       const newMessage = await messageService.createAudioMessage(groupId, transcribedText);
-      
+
       // Añadir el nuevo mensaje a la lista
       setMessages(prevMessages => [...prevMessages, newMessage]);
-      
+
       // Hacer scroll al final
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
-      
+
       console.log('Audio message sent successfully');
     } catch (error) {
       console.error('Error sending audio message:', error);
@@ -200,6 +204,33 @@ export default function GroupDetailScreen() {
     }
   };
 
+  const handlePlayTTS = async (messageId: number, text: string) => {
+    try {
+      // If this message is already playing, stop it
+      if (playingMessageId === messageId) {
+        await TTSService.stopPlayback();
+        setPlayingMessageId(null);
+        return;
+      }
+
+      // Stop any currently playing audio
+      if (playingMessageId !== null) {
+        await TTSService.stopPlayback();
+      }
+
+      // Play the new message
+      setPlayingMessageId(messageId);
+      await TTSService.textToSpeech(text);
+
+      // Reset playing state when done
+      setPlayingMessageId(null);
+    } catch (error) {
+      console.error('Error playing TTS:', error);
+      Alert.alert(
+        t('common.error'),
+        t('groups.ttsError') || 'Error al reproducir el audio'
+      );
+      setPlayingMessageId(null);
   const sendGloveMessage = async (gloveText: string) => {
     try {
       setIsSending(true);
@@ -285,13 +316,13 @@ export default function GroupDetailScreen() {
     const diffDays = Math.floor(diff / 86400000);
 
     if (diffMinutes < 1) {
-      return 'Ahora';
+      return t('groups.now');
     } else if (diffMinutes < 60) {
-      return `Hace ${diffMinutes}m`;
+      return t('groups.minutesAgo', { minutes: diffMinutes });
     } else if (diffHours < 24) {
-      return `Hace ${diffHours}h`;
+      return t('groups.hoursAgo', { hours: diffHours });
     } else if (diffDays < 7) {
-      return `Hace ${diffDays}d`;
+      return t('groups.daysAgo', { days: diffDays });
     } else {
       return date.toLocaleDateString('es-ES', {
         day: 'numeric',
@@ -333,7 +364,7 @@ export default function GroupDetailScreen() {
         <View style={styles.socketStatus}>
           <View style={[styles.socketIndicator, { backgroundColor: audioTranscription.isSocketConnected ? '#10B981' : '#EF4444' }]} />
           <Text style={styles.socketStatusText}>
-            {audioTranscription.isSocketConnected ? 'Audio conectado' : 'Audio desconectado'}
+            {audioTranscription.isSocketConnected ? t('groups.audioConnected') : t('groups.audioDisconnected')}
           </Text>
         </View>
 
@@ -383,13 +414,30 @@ export default function GroupDetailScreen() {
                           <Text style={[
                             styles.audioMessageBadgeText,
                             isCurrentUser && styles.audioMessageBadgeTextRight,
-                          ]}>Audio</Text>
+                          ]}>{t('groups.audioBadge')}</Text>
                         </View>
                       )}
-                      <Text style={[
-                        styles.messageText,
-                        isCurrentUser && styles.messageTextRight,
-                      ]}>{message.text}</Text>
+                      <View style={styles.messageContentRow}>
+                        <Text style={[
+                          styles.messageText,
+                          isCurrentUser && styles.messageTextRight,
+                          user?.user_type === 'regular_user' && styles.messageTextWithButton,
+                        ]}>{message.text}</Text>
+                        {user?.user_type === 'regular_user' && (
+                          <TouchableOpacity
+                            style={[
+                              styles.ttsButton,
+                              isCurrentUser && styles.ttsButtonRight,
+                            ]}
+                            onPress={() => handlePlayTTS(message.id, message.text)}
+                          >
+                            <Volume2
+                              size={16}
+                              color={playingMessageId === message.id ? "#f99f12" : (isCurrentUser ? "#000000" : "#ffffff")}
+                            />
+                          </TouchableOpacity>
+                        )}
+                      </View>
                       <Text style={[
                         styles.messageTime,
                         isCurrentUser && styles.messageTimeRight,
@@ -407,7 +455,7 @@ export default function GroupDetailScreen() {
         {/* Transcribed Text Preview */}
         {audioTranscription.transcribedText ? (
           <View style={styles.transcribedTextContainer}>
-            <Text style={styles.transcribedTextLabel}>Texto transcrito:</Text>
+            <Text style={styles.transcribedTextLabel}>{t('groups.transcribedText')}</Text>
             <Text style={styles.transcribedText}>{audioTranscription.transcribedText}</Text>
           </View>
         ) : null}
@@ -468,6 +516,7 @@ export default function GroupDetailScreen() {
                 <Hand size={20} color="#ffffff" />
               )}
               <Text style={styles.recordButtonText}>
+                {t('groups.recordSigns')}
                 {connectionStatus.isConnecting 
                   ? 'Conectando...'
                   : connectionStatus.isScanning
@@ -497,10 +546,10 @@ export default function GroupDetailScreen() {
                 <Mic size={20} color="#ffffff" />
               )}
               <Text style={styles.recordButtonText}>
-                {audioTranscription.isRecording 
-                  ? 'Detener' 
-                  : audioTranscription.isProcessing 
-                    ? 'Procesando...' 
+                {audioTranscription.isRecording
+                  ? t('groups.stop')
+                  : audioTranscription.isProcessing
+                    ? t('groups.processing')
                     : t('groups.recordSigns')
                 }
               </Text>
@@ -517,6 +566,7 @@ export default function GroupDetailScreen() {
               onChangeText={setMessageText}
               multiline
               maxLength={500}
+              autoCapitalize="sentences"
             />
             <TouchableOpacity
               style={styles.sendButton}
@@ -708,13 +758,35 @@ const styles = StyleSheet.create({
   audioMessageBadgeTextRight: {
     color: '#000000',
   },
+  messageContentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
   messageText: {
     color: '#ffffff',
     fontSize: 15,
     lineHeight: 20,
+    flexShrink: 1,
+    flexGrow: 1,
+  },
+  messageTextWithButton: {
+    flexShrink: 1,
+    flexGrow: 1,
+    paddingRight: 4,
   },
   messageTextRight: {
     color: '#000000',
+  },
+  ttsButton: {
+    padding: 4,
+    borderRadius: 12,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ttsButtonRight: {
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
   },
   messageTime: {
     color: '#6B7280',

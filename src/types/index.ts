@@ -37,6 +37,7 @@ export interface RegisterCredentials {
   email: string;
   password: string;
   confirmPassword?: string;
+  language: string;
   user_type: UserType;
 }
 

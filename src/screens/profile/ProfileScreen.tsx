@@ -20,29 +20,29 @@ export default function ProfileScreen() {
   const profileOptions = [
     {
       id: 'glove',
-      title: 'Glove Settings',
-      subtitle: 'Configure your Signalink glove preferences',
+      title: t('profile.gloveSettingsTitle'),
+      subtitle: t('profile.gloveSettingsDesc'),
       icon: Settings,
       onPress: () => console.log('Glove Settings'),
     },
     {
       id: 'language',
-      title: 'Language Settings',
-      subtitle: 'Choose your preferred translation language',
+      title: t('profile.languageSettingsTitle'),
+      subtitle: t('profile.languageSettingsDesc'),
       icon: Globe,
       onPress: () => console.log('Language Settings'),
     },
     {
       id: 'statistics',
-      title: 'Statistics',
-      subtitle: 'View your translation statistics and progress',
+      title: t('profile.statisticsTitle'),
+      subtitle: t('profile.statisticsDesc'),
       icon: BarChart3,
       onPress: () => console.log('Statistics'),
     },
     {
       id: 'help',
-      title: 'Help & Support',
-      subtitle: 'Get help and contact support',
+      title: t('profile.helpTitle'),
+      subtitle: t('profile.helpDesc'),
       icon: HelpCircle,
       onPress: () => console.log('Help & Support'),
     },
@@ -54,9 +54,9 @@ export default function ProfileScreen() {
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Profile</Text>
+            <Text style={styles.title}>{t('profile.title')}</Text>
             <Text style={styles.subtitle}>
-              Manage your account and preferences
+              {t('profile.subtitle')}
             </Text>
           </View>
 
@@ -70,10 +70,10 @@ export default function ProfileScreen() {
               </View>
               <View style={styles.profileInfo}>
                 <Text style={styles.userName}>
-                  {user?.name || 'User'}
+                  {user?.name || t('profile.defaultUser')}
                 </Text>
                 <Text style={styles.userEmail}>
-                  {user?.email || 'user@example.com'}
+                  {user?.email || t('profile.defaultEmail')}
                 </Text>
               </View>
             </View>
@@ -82,7 +82,7 @@ export default function ProfileScreen() {
           {/* Settings Options */}
           <Animated.View entering={FadeInDown.delay(200)}>
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Settings</Text>
+              <Text style={styles.sectionTitle}>{t('profile.settings')}</Text>
               <View style={styles.optionsList}>
                 {profileOptions.map((option, index) => (
                   <TouchableOpacity
@@ -111,7 +111,7 @@ export default function ProfileScreen() {
           <Animated.View entering={FadeInDown.delay(300)}>
             <View style={styles.logoutSection}>
               <Button
-                title="Sign Out"
+                title={t('profile.signOut')}
                 onPress={handleLogout}
                 variant="outline"
               />

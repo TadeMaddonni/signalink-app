@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../contexts/auth/AuthContext";
+import { useTranslation } from "react-i18next";
 
 import {
   Bluetooth,
@@ -23,6 +24,7 @@ import { BluetoothService } from "../../services/bluetooth/BluetoothService";
 import "../../utils/i18n";
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const [isConnected, setIsConnected] = useState(false);
   const [batteryLevel, setBatteryLevel] = useState(85);
   const { user } = useAuth();
@@ -52,7 +54,7 @@ export default function HomeScreen() {
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Home</Text>
+            <Text style={styles.title}>{t('home.title')}</Text>
             <View style={styles.headerActions}>
               <TouchableOpacity style={styles.headerButton}>
                 <Settings size={20} color="#ffffff" />
@@ -75,9 +77,9 @@ export default function HomeScreen() {
                     />
                   </View>
                   <View style={styles.cardTextContainer}>
-                    <Text style={styles.cardTitle}>Glove Status</Text>
+                    <Text style={styles.cardTitle}>{t('home.gloveStatusTitle')}</Text>
                     <Text style={styles.cardSubtitle}>
-                      {isConnected ? "Connected" : "Disconnected"}
+                      {isConnected ? t('home.connected') : t('home.disconnected')}
                     </Text>
                   </View>
                   <ChevronRight size={16} color="#6B7280" />
@@ -94,8 +96,8 @@ export default function HomeScreen() {
                     <Volume2 size={24} color="#f99f12" />
                   </View>
                   <View style={styles.halfCardTextContainer}>
-                    <Text style={styles.halfCardTitle}>Voice Mode</Text>
-                    <Text style={styles.halfCardSubtitle}>Active</Text>
+                    <Text style={styles.halfCardTitle}>{t('home.voiceMode')}</Text>
+                    <Text style={styles.halfCardSubtitle}>{t('home.active')}</Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -107,8 +109,8 @@ export default function HomeScreen() {
                     <BookOpen size={24} color="#f99f12" />
                   </View>
                   <View style={styles.halfCardTextContainer}>
-                    <Text style={styles.halfCardTitle}>Signs Library</Text>
-                    <Text style={styles.halfCardSubtitle}>Learn gestures</Text>
+                    <Text style={styles.halfCardTitle}>{t('home.signsLibraryTitle')}</Text>
+                    <Text style={styles.halfCardSubtitle}>{t('home.signsLibraryDesc')}</Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -123,8 +125,8 @@ export default function HomeScreen() {
                     <Users size={24} color="#f99f12" />
                   </View>
                   <View style={styles.halfCardTextContainer}>
-                    <Text style={styles.halfCardTitle}>Groups</Text>
-                    <Text style={styles.halfCardSubtitle}>Chat on groupss</Text>
+                    <Text style={styles.halfCardTitle}>{t('home.groupsTitle')}</Text>
+                    <Text style={styles.halfCardSubtitle}>{t('home.groupsDesc')}</Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -136,8 +138,8 @@ export default function HomeScreen() {
                     <MessageSquare size={24} color="#f99f12" />
                   </View>
                   <View style={styles.halfCardTextContainer}>
-                    <Text style={styles.halfCardTitle}>Buddy</Text>
-                    <Text style={styles.halfCardSubtitle}>Find near people</Text>
+                    <Text style={styles.halfCardTitle}>{t('home.buddyTitle')}</Text>
+                    <Text style={styles.halfCardSubtitle}>{t('home.buddyDesc')}</Text>
                   </View>
                 </View>
               </TouchableOpacity>
@@ -150,8 +152,8 @@ export default function HomeScreen() {
                   <Bluetooth size={20} color="#f99f12" />
                 </View>
                 <View style={styles.cardTextContainer}>
-                  <Text style={styles.cardTitle}>Custom Calibration</Text>
-                  <Text style={styles.cardSubtitle}>Calibrate your glove</Text>
+                  <Text style={styles.cardTitle}>{t('home.calibrationTitle')}</Text>
+                  <Text style={styles.cardSubtitle}>{t('home.calibrationDesc')}</Text>
                 </View>
                 <ChevronRight size={16} color="#6B7280" />
               </View>

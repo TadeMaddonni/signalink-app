@@ -5,6 +5,7 @@ import {
     User
 } from '../../types';
 import { API_CONFIG, DEFAULT_HEADERS, buildFullUrl } from '../api/config';
+import i18n from '../../utils/i18n';
 import UserService from '../user';
 
 class AuthService {
@@ -72,6 +73,12 @@ class AuthService {
         await AsyncStorage.setItem('user', JSON.stringify(fullUser));
         console.log('💾 Usuario completo guardado en AsyncStorage:', fullUser.id, fullUser.name);
 
+        // Set i18n language based on user preference
+        if (fullUser.language) {
+          await i18n.changeLanguage(fullUser.language);
+          console.log('🌐 Idioma configurado:', fullUser.language);
+        }
+
         return fullUser;
       } else {
         // Si success es false o no existe, manejar como error
@@ -104,6 +111,7 @@ class AuthService {
           username: credentials.username,
           email: credentials.email,
           password: credentials.password,
+          language: credentials.language,
           user_type: credentials.user_type,
         }),
       });
@@ -157,11 +165,17 @@ class AuthService {
 
         // Obtener información completa del usuario por ID (igual que en login)
         const fullUser: User = await UserService.getUserById(baseUserId);
-        console.log('� Usuario completo desde API (post-registro):', JSON.stringify(fullUser, null, 2));
+        console.log('👤 Usuario completo desde API (post-registro):', JSON.stringify(fullUser, null, 2));
 
         // Guardar información completa del usuario
         await AsyncStorage.setItem('user', JSON.stringify(fullUser));
         console.log('💾 Usuario completo guardado en AsyncStorage:', fullUser.id, fullUser.name, 'Tipo:', fullUser.user_type);
+
+        // Set i18n language based on user preference
+        if (fullUser.language) {
+          await i18n.changeLanguage(fullUser.language);
+          console.log('🌐 Idioma configurado:', fullUser.language);
+        }
 
         return fullUser;
       } else {
@@ -198,7 +212,18 @@ class AuthService {
     try {
       const userData = await AsyncStorage.getItem('user');
       if (userData) {
-        return JSON.parse(userData) as User;
+        const user = JSON.parse(userData) as User;
+
+        // Set i18n language based on saved user preference
+        if (user.language) {
+          console.log('🌐 getCurrentUser - Cambiando idioma a:', user.language);
+          await i18n.changeLanguage(user.language);
+          console.log('🌐 getCurrentUser - Idioma actual después del cambio:', i18n.language);
+        } else {
+          console.log('⚠️ getCurrentUser - Usuario no tiene campo language:', user);
+        }
+
+        return user;
       }
       return null;
     } catch (error) {
