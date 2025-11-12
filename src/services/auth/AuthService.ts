@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  LoginCredentials,
-  RegisterCredentials,
-  User
+    LoginCredentials,
+    RegisterCredentials,
+    User
 } from '../../types';
 import { API_CONFIG, DEFAULT_HEADERS, buildFullUrl } from '../api/config';
 import i18n from '../../utils/i18n';
