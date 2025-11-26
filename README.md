@@ -1,50 +1,195 @@
-# Welcome to your Expo app 👋
+# SignaLink App 🧤
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+SignaLink es una aplicación móvil desarrollada con **Expo** y **React Native** que permite la comunicación mediante señas, conectando con un guante inteligente vía Bluetooth para traducir gestos a texto en tiempo real.
 
-## Get started
+## 📋 Características principales
 
-1. Install dependencies
+- 🧤 **Conexión Bluetooth** con guante SignaLink
+- 💬 **Chat en tiempo real** con traducción de señas
+- 👥 **Grupos de conversación**
+- 🌍 **Soporte multi-idioma** (i18n)
+- 🎨 **Interfaz moderna** con React Native Paper
+- 📱 **Compatible con Android e iOS**
 
-   ```bash
-   npm install
-   ```
+## 🚀 Instalación y configuración
 
-2. Start the app
+### Prerrequisitos
 
+- **Node.js** 18+
+- **npm** o **yarn**
+- **Expo CLI**: `npm install -g @expo/cli`
+- **EAS CLI**: `npm install -g eas-cli`
+
+### 1. Instalar dependencias
+
+```bash
+npm install
+```
+
+### 2. Configuración para Development Build
+
+Para usar las funcionalidades de Bluetooth, necesitas una **Development Build**:
+
+```bash
+# Configurar EAS (solo la primera vez)
+eas login
+eas build:configure
+
+# Generar build para Android
+eas build --profile development --platform android
+```
+
+### 3. Ejecutar la aplicación
+
+```bash
+npx expo start --clear
+```
+
+## 📱 Ejecutar en Android
+
+### Opción 1: Development Build (Recomendado para Bluetooth)
+
+1. **Descarga e instala** la APK generada por EAS Build
+2. **Ejecuta el servidor de desarrollo:**
    ```bash
    npx expo start
    ```
+3. **Conecta la app:**
+   - Abre la app SignaLink en tu dispositivo
+   - Conecta a la URL mostrada (ej: `http://192.168.1.15:8081`)
+   - O escanea el código QR desde la app
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### Opción 2: Expo Go (Limitado)
 
 ```bash
-npm run reset-project
+npx expo start
+# Presiona 's' para cambiar a Expo Go
+# Escanea el QR con la app Expo Go
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+⚠️ **Nota:** Expo Go no soporta Bluetooth nativo, usar solo para desarrollo UI.
 
-## Learn more
+## 🔵 Configuración Bluetooth
 
-To learn more about developing your project with Expo, look at the following resources:
+### Dependencias instaladas
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```json
+{
+  "react-native-ble-plx": "^3.5.0"
+}
+```
 
-## Join the community
+### Permisos Android
 
-Join our community of developers creating universal apps.
+Los siguientes permisos están configurados en `app.json`:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```json
+{
+  "permissions": [
+    "android.permission.BLUETOOTH",
+    "android.permission.BLUETOOTH_ADMIN",
+    "android.permission.ACCESS_COARSE_LOCATION",
+    "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.BLUETOOTH_SCAN",
+    "android.permission.BLUETOOTH_CONNECT",
+    "android.permission.BLUETOOTH_ADVERTISE"
+  ]
+}
+```
+
+### Configuración del guante SignaLink
+
+El servicio Bluetooth está configurado para conectarse con:
+
+- **Nombre del dispositivo:** `SignaLinkCM4`
+- **Service UUID:** `12345678-1234-5678-1234-56789abcdef0`
+- **Characteristic UUID:** `12345678-1234-5678-1234-56789abcdef2`
+
+### Uso del servicio Bluetooth
+
+```typescript
+import BluetoothBLEService from "./src/services/bluetooth/BluetoothBLEService";
+
+const bluetoothService = BluetoothBLEService.getInstance();
+
+// Conectar al guante
+await bluetoothService.connectToGlove({
+  onDataReceived: (text: string) => {
+    console.log("Texto recibido:", text);
+  },
+  onStatusChange: (status) => {
+    console.log("Estado:", status);
+  },
+  onError: (error) => {
+    console.error("Error:", error);
+  },
+});
+```
+
+## 📁 Estructura del proyecto
+
+```
+src/
+├── components/          # Componentes reutilizables
+├── contexts/           # Context API (Auth, etc.)
+├── hooks/              # Custom hooks
+├── screens/            # Pantallas de la app
+├── services/           # Servicios (API, Bluetooth, etc.)
+│   └── bluetooth/      # Servicio de conexión Bluetooth
+├── types/              # Definiciones de tipos TypeScript
+└── utils/              # Utilidades
+```
+
+## 🔧 Scripts disponibles
+
+```bash
+# Desarrollo
+npm start                    # Iniciar servidor Expo
+npm run android             # Ejecutar en Android (requiere emulador/dispositivo)
+npm run ios                 # Ejecutar en iOS (requiere simulador/dispositivo)
+npm run web                 # Ejecutar en navegador
+
+# Build y deploy
+eas build --platform android   # Build para Android
+eas build --platform ios      # Build para iOS
+eas submit --platform android # Subir a Play Store
+
+# Utilidades
+npm run reset-project       # Reset proyecto a estado inicial
+npm run lint               # Ejecutar ESLint
+```
+
+## 🐛 Troubleshooting
+
+### Error: "adb no se reconoce como comando"
+
+Si obtienes este error al presionar 'a' en Expo CLI:
+
+- **Solución:** Usa la Development Build directamente, no necesitas ADB
+- **Alternativa:** Instala Android Studio y configura ANDROID_HOME
+
+### Bluetooth no funciona en Expo Go
+
+- **Causa:** Expo Go no soporta librerías nativas como `react-native-ble-plx`
+- **Solución:** Usa Development Build con `eas build`
+
+### Error de permisos Bluetooth en Android
+
+- **Verifica** que los permisos estén en `app.json`
+- **Acepta** los permisos cuando la app los solicite
+- **En Android 12+:** Los permisos NEARBY_DEVICES se solicitan automáticamente
+
+## 🔗 Recursos útiles
+
+- [Expo documentation](https://docs.expo.dev/)
+- [React Native BLE PLX](https://github.com/innoveit/react-native-ble-plx)
+- [EAS Build](https://docs.expo.dev/build/introduction/)
+- [Development Builds](https://docs.expo.dev/develop/development-builds/introduction/)
+
+## 👥 Contribuir
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
