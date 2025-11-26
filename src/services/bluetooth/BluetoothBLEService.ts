@@ -1,5 +1,5 @@
-import { PermissionsAndroid, Platform } from 'react-native';
 import Constants from 'expo-constants';
+import { PermissionsAndroid, Platform } from 'react-native';
 
 // Verificar si estamos en Expo Go
 const isExpoGo = Constants.appOwnership === 'expo';
